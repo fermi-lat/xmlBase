@@ -1,0 +1,11 @@
+<!-- dtd suitable for use with xml::IFile -->
+<!-- $Header: /nfs/slac/g/glast/ground/cvs/xml/xmldata/ifile.dtd,v 1.1 2003/12/15 23:35:51 jrb Exp $ -->
+
+<!ELEMENT ifile (section)* >
+<!ATTLIST ifile  cvs_Header CDATA #REQUIRED
+                     cvs_Revision CDATA #REQUIRED>
+<!ELEMENT section (#PCDATA | item | section)*  >
+<!ATTLIST section name CDATA #REQUIRED>
+<!ELEMENT item   (#PCDATA)>
+<!ATTLIST item  name CDATA #REQUIRED
+                value CDATA #REQUIRED>
