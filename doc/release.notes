@@ -3,7 +3,10 @@
  * Coordinator: Joanne Bogart
  *
  *                  EOH
- * v5r1                jrb  Change name from xml to xmlBase
+
+   v5r1p0  29-Dec-2004 jrb  Fix a couple more things so all test programs run
+   v5r1    29-Dec-2004 jrb  Copy of xml package, v5r0, with internal references,
+                            namespace names, etc., converted for xmlBase
  * v5r0    10-Nov-2004 jrb  Upgrades for Xerces 2.6.0
  * v4r11p2  8-Sep-2004 jrb  Get rid of deprecated <strstream>
  * v4r11p1 16-Jun-2004 jrb  Alternate fix to compile problem: #include <string>
