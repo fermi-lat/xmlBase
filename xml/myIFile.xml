@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <!-- Little test ifile -->
 
-<!DOCTYPE ifile SYSTEM "$(XMLROOT)/xmldata/ifile.dtd" >
+<!DOCTYPE ifile SYSTEM "$(XMLBASEROOT)/xml/ifile.dtd" >
 
-<ifile cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/xml/xmldata/myIFile.xml,v 1.1 2003/12/15 23:35:51 jrb Exp $"
-       cvs_Revision="$Revision: 1.1 $" >
+<ifile cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xml/myIFile.xml,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $"
+       cvs_Revision="$Revision: 1.1.1.1 $" >
   <section name="section1"> Comment for first section
     <item name="section1-val1" value="1.0"> A value (float) </item>
     <item name="section1-val2" value="33550336"> Another value (int) </item>

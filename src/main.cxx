@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
   
   std::string infile;
   if (argc < 2) { 
-    infile=std::string("$(XMLBASEROOT)/xmlBase/test.xml");
+    infile=std::string("$(XMLBASEROOT)/xml/test.xml");
   }
   else {
     infile = std::string(argv[1]);
