@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-void lookFor(xml::IFile* ifile, const char* section, const char* item);
+void lookFor(xmlBase::IFile* ifile, const char* section, const char* item);
 
 int main() {
     
