@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Mon Jan  3 15:13:33 PST 2005
+xmlBase/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Change ${xml_headers} to ${xmlBase_headers} for Windows
+
+    *
+------------------------------------------------------------
 User: jrb  Mon Jan  3 15:06:06 PST 2005
 xmlBase/xmlBase
 
