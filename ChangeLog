@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Wed Dec 29 14:48:58 PST 2004
+xmlBase/src
+
+Modified Files:
+	main.cxx 
+Log Message:
+Fix another internal reference or two after copying xml package to xmlBase
+
+    *
+------------------------------------------------------------
 User: jrb  Wed Dec 29 14:36:26 PST 2004
 xmlBase
 
