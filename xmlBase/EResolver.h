@@ -1,8 +1,8 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/xml/EResolver.h,v 1.3 2004/11/10 17:40:08 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/EResolver.h,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 // Author: J. Bogart
 
-#ifndef  xmlBase_EResolver.h
-#define  xmlBase_EResolver.h
+#ifndef  xmlBase_EResolver_h
+#define  xmlBase_EResolver_h
 
 #include <xercesc/util/XercesDefs.hpp>
 #include <xercesc/util/XMLEntityResolver.hpp>
