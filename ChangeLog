@@ -1,4 +1,51 @@
 ------------------------------------------------------------
+TAG
+Tag name: v5r1p0, operation: add
+Package: xmlBase
+User: jrb  Wed Dec 29 14:53:24 2004
+Files:
+  xmlBase/xmlChangeLog  1.1.1.1
+  xmlBase/.cvsignore  1.1.1.1
+  xmlBase/ChangeLog  1.6
+  xmlBase/cmt/.cvsignore  1.1.1.1
+  xmlBase/cmt/requirements  1.2
+  xmlBase/doc/release.notes  1.2
+  xmlBase/expat/expat.html  1.1.1.1
+  xmlBase/expat/.cvsignore  1.1.1.1
+  xmlBase/expat/xmltok.c  1.1.1.1
+  xmlBase/expat/xmltok_ns.c  1.1.1.1
+  xmlBase/expat/xmlwf/.cvsignore  1.1.1.1
+  xmlBase/src/mainpage.h  1.1.1.1
+  xmlBase/src/main.cxx  1.2
+  xmlBase/src/EResolver.cxx  1.1.1.1
+  xmlBase/src/XmlParser.cxx  1.1.1.1
+  xmlBase/src/IFile.cxx  1.1.1.1
+  xmlBase/src/Dom.cxx  1.1.1.1
+  xmlBase/src/XmlErrorHandler.cxx  1.1.1.1
+  xmlBase/src/docMan/DocMan.cxx  1.1.1.1
+  xmlBase/src/test/test_mem.cxx  1.1.1.1
+  xmlBase/src/test/test_IFile.cxx  1.2
+  xmlBase/src/test/entity_test.cxx  1.1.1.1
+  xmlBase/xml/test-bad.xml  1.1.1.1
+  xmlBase/xml/test-error.xml  1.1.1.1
+  xmlBase/xml/myIFile.xml  1.2
+  xmlBase/xml/ifile.dtd  1.1.1.1
+  xmlBase/xml/test.xml  1.1.1.1
+  xmlBase/xml/simpleExternal.xml  1.1.1.1
+  xmlBase/xml/simple.dtd  1.1.1.1
+  xmlBase/xml/test-dtd.xml  1.1.1.1
+  xmlBase/xml/test-arith.xml  1.1.1.1
+  xmlBase/xml/simpleDoc.xml  1.1.1.1
+  xmlBase/xmlBase/EResolver.h  1.1.1.1
+  xmlBase/xmlBase/Dom.h  1.1.1.1
+  xmlBase/xmlBase/XmlErrorHandler.h  1.1.1.1
+  xmlBase/xmlBase/XmlParser.h  1.1.1.1
+  xmlBase/xmlBase/IFile.h  1.1.1.1
+  xmlBase/xmlBase/docMan/DocClient.h  1.1.1.1
+  xmlBase/xmlBase/docMan/DocMan.h  1.1.1.1
+
+    *
+------------------------------------------------------------
 User: jrb  Wed Dec 29 14:53:11 PST 2004
 xmlBase/doc
 
