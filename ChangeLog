@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: jrb  Mon Jan  3 15:06:06 PST 2005
+xmlBase/xmlBase
+
+Modified Files:
+	EResolver.h 
+Log Message:
+Windows doesn't like '.' as part of #define symbol.  Change to '_', which
+was the intent all along.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r1p0, operation: add
 Package: xmlBase
