@@ -1,0 +1,75 @@
+------------------------------------------------------------
+User: jrb  Wed Dec 29 14:36:26 PST 2004
+xmlBase
+
+Log Message:
+xmlBase is cleaned-up copy of xml package
+
+Status:
+
+Vendor Tag:	GLAST
+Release Tags:	v5r1
+		
+I xmlBase/xmlChangeLog~
+N xmlBase/.cvsignore
+N xmlBase/xmlChangeLog
+I xmlBase/xmlBase/Dom.h~
+I xmlBase/xmlBase/EResolver.h~
+I xmlBase/xmlBase/IFile.h~
+I xmlBase/xmlBase/XmlErrorHandler.h~
+I xmlBase/xmlBase/XmlParser.h~
+N xmlBase/xmlBase/Dom.h
+N xmlBase/xmlBase/EResolver.h
+N xmlBase/xmlBase/XmlParser.h
+N xmlBase/xmlBase/IFile.h
+N xmlBase/xmlBase/XmlErrorHandler.h
+I xmlBase/xmlBase/docMan/DocClient.h~
+I xmlBase/xmlBase/docMan/DocMan.h~
+N xmlBase/xmlBase/docMan/DocMan.h
+N xmlBase/xmlBase/docMan/DocClient.h
+N xmlBase/cmt/.cvsignore
+I xmlBase/cmt/requirements~
+N xmlBase/cmt/requirements
+I xmlBase/doc/release.notes~
+N xmlBase/doc/release.notes
+N xmlBase/expat/.cvsignore
+N xmlBase/expat/expat.html
+N xmlBase/expat/xmltok.c
+N xmlBase/expat/xmltok_ns.c
+N xmlBase/expat/xmlwf/.cvsignore
+N xmlBase/xml/ifile.dtd
+N xmlBase/xml/myIFile.xml
+N xmlBase/xml/simple.dtd
+N xmlBase/xml/simpleDoc.xml
+N xmlBase/xml/simpleExternal.xml
+N xmlBase/xml/test-arith.xml
+N xmlBase/xml/test-bad.xml
+N xmlBase/xml/test-dtd.xml
+N xmlBase/xml/test-error.xml
+N xmlBase/xml/test.xml
+I xmlBase/src/Dom.cxx~
+I xmlBase/src/EResolver.cxx~
+I xmlBase/src/IFile.cxx~
+I xmlBase/src/XmlErrorHandler.cxx~
+I xmlBase/src/XmlParser.cxx~
+I xmlBase/src/main.cxx~
+I xmlBase/src/mainpage.h~
+N xmlBase/src/XmlParser.cxx
+N xmlBase/src/Dom.cxx
+N xmlBase/src/IFile.cxx
+N xmlBase/src/main.cxx
+N xmlBase/src/EResolver.cxx
+N xmlBase/src/mainpage.h
+N xmlBase/src/XmlErrorHandler.cxx
+I xmlBase/src/docMan/DocMan.cxx~
+N xmlBase/src/docMan/DocMan.cxx
+I xmlBase/src/test/test_IFile.cxx~
+N xmlBase/src/test/entity_test.cxx
+N xmlBase/src/test/test_IFile.cxx
+I xmlBase/src/test/test_mem.cxx~
+N xmlBase/src/test/test_mem.cxx
+I xmlBase/src/test/entity_test.cxx~
+
+No conflicts created by this import
+
+    *
