@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+   v5r1p1   3-Jan-2005 jrb  Fix a couple things for Windows
    v5r1p0  29-Dec-2004 jrb  Fix a couple more things so all test programs run
    v5r1    29-Dec-2004 jrb  Copy of xml package, v5r0, with internal references,
                             namespace names, etc., converted for xmlBase
