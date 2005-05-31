@@ -11,7 +11,6 @@ void lookFor(xmlBase::IFile* ifile, const char* section, const char* item);
 int main() {
     
   std::string filename("$(XMLBASEROOT)/xml/myIFile.xml");
-
   xmlBase::IFile* ifile = 0;
 
   ifile = new xmlBase::IFile(filename.c_str());
@@ -24,11 +23,35 @@ int main() {
     lookFor(ifile, "subsection","subsectionItem");
     lookFor(ifile, "section2","subsectionItem");
     lookFor(ifile, "section2","bad-int");
-    
-
   }
   else std::cout << "Unable to read file " << ifile << std::endl;
 
+
+  // Now do it again for IFile referencing schema rather than dtd
+  std::string filename2("$(XMLBASEROOT)/xml/mySchemaIFile.xml");
+
+  std::cout << std::endl << std::endl;
+  std::cout << "And for my next trick:  process an IFile using XML Schema.";
+  std::cout << std::endl;
+  std::cout << 
+    "This file should be flagged bad; it doesn't follow schema content model." 
+            << std::endl << std::endl;
+
+  xmlBase::IFile* ifile2 = 0;
+
+  ifile2 = new xmlBase::IFile(filename2.c_str());
+  // fetch some stuff  
+
+  if (ifile2) {
+
+    lookFor(ifile2, "section1", "section1-val1");
+    lookFor(ifile2, "section1", "section1-val2");
+    lookFor(ifile2, "subsection","subsectionItem");
+    lookFor(ifile2, "section2","subsectionItem");
+    lookFor(ifile2, "section2","bad-int");
+  }
+  else std::cout << "Unable to read file " << ifile2 << std::endl;
+  
   return(0);
 }
 

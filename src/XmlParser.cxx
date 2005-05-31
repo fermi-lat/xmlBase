@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/src/XmlParser.cxx,v 1.19 2004/11/10 17:39:13 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/XmlParser.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 // Author: J. Bogart
 
 #include <iostream>   // for endl, cerr,...
@@ -9,6 +9,7 @@
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/util/XMLString.hpp>
+#include <xercesc/framework/XMLValidator.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
 
 namespace {
@@ -35,7 +36,8 @@ namespace xmlBase {
   
   //  class XMLScanner;
 
-  XmlParser::XmlParser(bool throwErrors) : m_throwErrors(throwErrors) {
+  XmlParser::XmlParser(bool throwErrors) : m_throwErrors(throwErrors),
+                                           m_doSchema(false) {
     if (!didInit) {
       try {
         XMLPlatformUtils::Initialize();
@@ -61,14 +63,21 @@ namespace xmlBase {
     m_parser = new XercesDOMParser();
 
     m_errorHandler = new XmlErrorHandler(throwErrors);
-    m_parser->setErrorHandler(m_errorHandler);
 
     // According to documentation we shouldn't need this, but
     // just in case..
     m_parser->setValidationScheme(AbstractDOMParser::Val_Auto);
+    /*
+    m_parser->setDoNamespaces(true);
+    m_parser->setDoSchema(true);
+    m_parser->setValidationSchemaFullChecking(true);
+    */
 
     m_resolver = new EResolver();
     m_parser->setXMLEntityResolver(m_resolver);
+    m_parser->setErrorHandler(m_errorHandler);
+
+    
 
     // Don't keep entity reference nodes.  We don't use them
     // and they can cause confusion
@@ -79,6 +88,14 @@ namespace xmlBase {
     // As long as we don't need to re-serialize, we can forget about
     // ingnorable white space and save a bit of memory.
     m_parser->setIncludeIgnorableWhitespace(false);
+  }
+  void XmlParser::doSchema(bool doit) {
+    m_doSchema = doit;  // just to keep a record of what we think we're doing
+
+    //    m_parser->setValidationScheme(AbstractDOMParser::Val_Always);
+    m_parser->setDoNamespaces(doit);
+    m_parser->setDoSchema(doit);
+    m_parser->setValidationSchemaFullChecking(doit);
   }
 
   XmlParser::~XmlParser() {

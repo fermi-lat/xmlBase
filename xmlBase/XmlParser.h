@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/xml/XmlParser.h,v 1.14 2004/11/10 17:40:08 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/XmlParser.h,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_XmlParser_h
@@ -22,6 +22,9 @@ namespace xmlBase {
   class XmlParser {
   public:
     XmlParser(bool throwErrors = false);
+
+    /// Call this method to turn on schema processing (else it's off)
+    void doSchema(bool doit);
     ~XmlParser();
 
     /// Parse an xml file, returning document node if successful
@@ -44,7 +47,7 @@ namespace xmlBase {
     EResolver*       m_resolver;    
     bool             m_throwErrors;
     bool             m_errorsOccurred;
-
+    bool             m_doSchema;
     static int didInit;
   };
 }
