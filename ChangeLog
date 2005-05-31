@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: jrb  Tue May 31 12:24:59 PDT 2005
+xmlBase/src
+
+Modified Files:
+	IFile.cxx 
+Log Message:
+IFile.cxx:  Get rid of uses of FATAL_MACRO in favor of exit(1) to avoid
+core dumps
+
+    *
+------------------------------------------------------------
 User: jrb  Tue May 31 12:19:11 PDT 2005
 xmlBase/xmlBase
 
