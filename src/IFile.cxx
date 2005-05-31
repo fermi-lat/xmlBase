@@ -107,8 +107,11 @@ XERCES_CPP_NAMESPACE_USE
     {
       // check that argument is non-null
       if (doc == 0) {
-        FATAL_MACRO("Attempt to construct IFile from null DOMDocument");
-        return;
+        //  FATAL_MACRO("Attempt to construct IFile from null DOMDocument");
+        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+                  << std::endl;
+        std::cerr.flush();
+        exit(1);
       }
       // If so, call service to do the actual work
       domToIni(doc);
@@ -118,8 +121,11 @@ XERCES_CPP_NAMESPACE_USE
     {
       // check that argument is non-null
       if (doc == 0) {
-        FATAL_MACRO("Attempt to construct IFile from null DOMElement");
-        return;
+        //        FATAL_MACRO("Attempt to construct IFile from null DOMElement");
+        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+                  << std::endl;
+        std::cerr.flush();
+        exit(1);
       }
       // If so, call service to do the actual work
       domToIni(doc);
@@ -149,7 +155,6 @@ XERCES_CPP_NAMESPACE_USE
         std::cerr.flush();
         exit(1);
         //   FATAL_MACRO("Attempt to construct IFile from null DomDocument");
-        return;
       }
       
       // If so, initialize IFile from it
