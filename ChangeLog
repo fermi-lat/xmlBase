@@ -1,4 +1,19 @@
 ------------------------------------------------------------
+User: jrb  Tue May 31 12:19:10 PDT 2005
+xmlBase/src
+
+Modified Files:
+	IFile.cxx XmlParser.cxx 
+Log Message:
+1. Add doSchema method to XmlParser, allowing it to do validation for files
+   using XML schema in addition to dtd's
+2. Add schema version (ifile.xsd) of IFile constraints and a test IFile
+   using the schema version
+3. Modify IFile class to invoke XmlParser::doSchema (doesn't prevent it
+   from parsing old-style dtd-using files as well)
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r1p2, operation: add
 Package: xmlBase
