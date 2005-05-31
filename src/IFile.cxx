@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/src/IFile.cxx,v 1.13 2004/11/10 17:39:13 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/IFile.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 
 
 #include "xmlBase/IFile.h"
@@ -133,6 +133,8 @@ XERCES_CPP_NAMESPACE_USE
 
       XmlParser parser;
       
+      parser.doSchema(true);
+
       std::string filenameStr = filename;
       Util::expandEnvVar(&filenameStr);
 
@@ -142,7 +144,11 @@ XERCES_CPP_NAMESPACE_USE
       
       // Check it's a good doc.  
       if (doc == 0) {
-        FATAL_MACRO("Attempt to construct IFile from null DomDocument");
+        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+                  << std::endl;
+        std::cerr.flush();
+        exit(1);
+        //   FATAL_MACRO("Attempt to construct IFile from null DomDocument");
         return;
       }
       
