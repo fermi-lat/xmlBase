@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+   v5r2     2-Jun-2005 jrb  Add ability to validate files w.r.t. XML schema
    v5r1p2   4-Jan-2005 jrb  Rename test program so RM will recognize it
    v5r1p1   3-Jan-2005 jrb  Fix a couple things for Windows
    v5r1p0  29-Dec-2004 jrb  Fix a couple more things so all test programs run
