@@ -1,3 +1,4 @@
+// $Header: $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
@@ -9,7 +10,7 @@
 #include <string>
 #include <iostream>
 
-unsigned stripAndWrite(const std::string& fname);
+unsigned stripAndWrite(const std::string& fname, bool standalone=false);
 
 int main() {
     
@@ -23,7 +24,7 @@ int main() {
 
   // Now do it again for test file referencing dtd
   std::string refDtd("$(XMLBASEROOT)/xml/myIFile.xml");
-  stripAndWrite(refDtd);
+  stripAndWrite(refDtd, true);
 
   // One last time for test file referencing schema rather than dtd
   std::string refSchema("$(XMLBASEROOT)/xml/mySchemaIFile.xml");
@@ -32,7 +33,7 @@ int main() {
   return(0);
 }
 
-unsigned stripAndWrite(const std::string& fname) {
+unsigned stripAndWrite(const std::string& fname, bool standalone) {
   XERCES_CPP_NAMESPACE_USE
   using xmlBase::Dom;
 
@@ -50,7 +51,7 @@ unsigned stripAndWrite(const std::string& fname) {
   //  Dom::stripComments(docElt);
   Dom::stripComments(doc);
 
-  bool status = Dom::writeIt(doc, outname.c_str());
+  bool status = Dom::writeIt(doc, outname.c_str(), standalone);
   return (status) ? 0 : 1;
 }
   

@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.2 2006/02/04 00:07:39 jrb Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -860,7 +860,7 @@ namespace xmlBase {
     return;
   }
 
-  bool Dom::writeIt(DOMNode* doc, const char* fname) {
+  bool Dom::writeIt(DOMNode* doc, const char* fname, bool standalone) {
     XMLCh tempStr[100];
     XMLString::transcode("LS", tempStr, 99);
     DOMImplementation *impl = 
@@ -877,6 +877,11 @@ namespace xmlBase {
     
     facilities::Util::expandEnvVar(&f);
     myFormTarget = new LocalFileFormatTarget(f.c_str());
+
+    if (doc->getNodeType() == DOMNode::DOCUMENT_NODE) {
+      DOMDocument* d = static_cast<DOMDocument *>(doc);
+      d->setStandalone(standalone);
+    }
 
     bool status = theSerializer->writeNode(myFormTarget, *doc);
     delete theSerializer;

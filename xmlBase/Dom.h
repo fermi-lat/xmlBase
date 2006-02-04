@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.2 2006/02/04 00:07:39 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_Dom_h
@@ -211,7 +211,8 @@ namespace xmlBase {
     static void stripComments(DOMNode* elt);
 
     //! Write document to specified file
-    static bool writeIt(DOMNode* doc, const char* fname);
+    static bool writeIt(DOMNode* doc, const char* fname, 
+                        bool standalone=false);
 
     //! Add attribute of type double to a DOM element, DOMString att name 
     //    static void         addAttribute(DOMElement* elt, const DomString& name, 
