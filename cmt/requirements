@@ -1,5 +1,5 @@
 package xmlBase
-# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.6 2005/01/05 07:04:03 jrb Exp $
+# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.7 2005/06/02 17:54:25 jrb Exp $
 
 
 version v5r2
@@ -32,3 +32,6 @@ application test_xmlBase main.cxx
 application test_mem test/test_mem.cxx 
 
 application test_IFile test/test_IFile.cxx
+
+application test_write test/test_write.cxx
+
