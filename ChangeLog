@@ -1,4 +1,16 @@
 ------------------------------------------------------------
+User: jrb  Fri Feb  3 16:07:38 PST 2006
+xmlBase/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Add a couple utilities to Dom class to a) strip out comments b) serialize
+a DOM (in-memory rep.) and write to a file.
+Add test program and complicate sample xml files a bit to exercise it.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceToolsv6r2, operation: add
 Package: xmlBase
