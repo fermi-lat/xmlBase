@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: jrb  Fri Feb  3 16:44:36 PST 2006
+xmlBase/src
+
+Modified Files:
+	Dom.cxx 
+Log Message:
+Allow caller of serialize routine to specify 'standalone' field in
+XML declaration (default is standalone="no")
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Feb  3 16:07:39 PST 2006
 xmlBase/xmlBase
 
