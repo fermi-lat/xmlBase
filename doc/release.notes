@@ -4,6 +4,9 @@
  *
  *                  EOH
 
+   v5r3     3-Feb-2006 jrb  Add a couple utilities to Dom class: one to strip
+                            out comments in in-memory (DOM) representation of
+                            XML document, another to write out DOM to a file
    v5r2     2-Jun-2005 jrb  Add ability to validate files w.r.t. XML schema
    v5r1p2   4-Jan-2005 jrb  Rename test program so RM will recognize it
    v5r1p1   3-Jan-2005 jrb  Fix a couple things for Windows
