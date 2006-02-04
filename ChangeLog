@@ -1,5 +1,17 @@
 ------------------------------------------------------------
 User: jrb  Fri Feb  3 16:07:39 PST 2006
+xmlBase/xmlBase
+
+Modified Files:
+	Dom.h 
+Log Message:
+Add a couple utilities to Dom class to a) strip out comments b) serialize
+a DOM (in-memory rep.) and write to a file.
+Add test program and complicate sample xml files a bit to exercise it.
+
+    *
+------------------------------------------------------------
+User: jrb  Fri Feb  3 16:07:39 PST 2006
 xmlBase/xml
 
 Modified Files:
