@@ -1,5 +1,16 @@
 ------------------------------------------------------------
 User: jrb  Fri Feb  3 16:44:36 PST 2006
+xmlBase/src/test
+
+Modified Files:
+	test_write.cxx 
+Log Message:
+Allow caller of serialize routine to specify 'standalone' field in
+XML declaration (default is standalone="no")
+
+    *
+------------------------------------------------------------
+User: jrb  Fri Feb  3 16:44:36 PST 2006
 xmlBase/src
 
 Modified Files:
