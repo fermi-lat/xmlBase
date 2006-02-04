@@ -1,3 +1,4 @@
+<?xml version="1.0" standalone="yes" ?>
 <TopElement>
   <ChildElt  anAttribute="I'm nested but empty" />
   <ChildElt  anAttribute= "I'm nested with content">

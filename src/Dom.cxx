@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/src/Dom.cxx,v 1.39 2004/11/10 17:39:13 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -16,12 +16,17 @@
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
 
+#include <xercesc/dom/DOMImplementation.hpp>
+#include <xercesc/dom/DOMImplementationLS.hpp>
+#include <xercesc/dom/DOMImplementationRegistry.hpp>
+#include <xercesc/dom/DOMWriter.hpp>
+#include <xercesc/framework/LocalFileFormatTarget.hpp>
+
+
 #include "facilities/Util.h"
-//#ifdef DEFECT_NO_STRINGSTREAM
-//#include <strstream>
-//#else
+
 #include <sstream>
-//#endif
+
 
 
 #include <string>
@@ -814,6 +819,69 @@ namespace xmlBase {
       return 0;
     }
     return 1;
+  }
+
+  void Dom::stripComments(DOMNode* elt) {
+    if (elt->getNodeType() == DOMNode::DOCUMENT_NODE) {
+      // Might have comment children 
+      DOMNode* child = elt->getFirstChild();
+      while (child) {
+        DOMNode* toProcess = child;
+        child = child->getNextSibling();
+        if (toProcess->getNodeType() == DOMNode::COMMENT_NODE) {
+          elt->removeChild(toProcess);
+        }
+      }
+
+      DOMDocument* doc = static_cast<DOMDocument*> (elt);
+      elt = doc->getDocumentElement();
+    }
+    return stripCommentsInternal(elt);
+  }
+
+  void Dom::stripCommentsInternal(DOMNode* node) {
+    /*
+      if node has no descendants, return
+      for each child node   
+         if it's a comment, remove it
+         if it's an element, recurse
+    */
+    DOMNode* child = node->getFirstChild();
+    while (child) {
+      DOMNode* toProcess = child;
+      child = child->getNextSibling();
+      if (toProcess->getNodeType() == DOMNode::COMMENT_NODE) {
+        node->removeChild(toProcess);
+      }
+      else if (toProcess->getNodeType() == DOMNode::ELEMENT_NODE) {
+        stripCommentsInternal(toProcess);
+      }
+    }
+    return;
+  }
+
+  bool Dom::writeIt(DOMNode* doc, const char* fname) {
+    XMLCh tempStr[100];
+    XMLString::transcode("LS", tempStr, 99);
+    DOMImplementation *impl = 
+      DOMImplementationRegistry::getDOMImplementation(tempStr);
+    DOMWriter *theSerializer = ((DOMImplementationLS*)impl)->createDOMWriter();
+
+    XMLString::transcode("format-pretty-print", tempStr, 99);
+    theSerializer->setFeature(tempStr, true);
+
+    XMLFormatTarget *myFormTarget;
+
+    // Translate environment variables, if any
+    std::string  f(fname);
+    
+    facilities::Util::expandEnvVar(&f);
+    myFormTarget = new LocalFileFormatTarget(f.c_str());
+
+    bool status = theSerializer->writeNode(myFormTarget, *doc);
+    delete theSerializer;
+    delete myFormTarget;
+    return status;
   }
 
 }  // end namespace xmlBase

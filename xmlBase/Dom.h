@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xml/xml/Dom.h,v 1.27 2004/11/10 17:40:08 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_Dom_h
@@ -17,13 +17,6 @@ XERCES_CPP_NAMESPACE_END
 #include <vector>
 #include <map>
 
-// typedef DOM_Element DomElement;
-// typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMElement  DomElement
-// typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMNode     DomNode;
-// typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument DomDocuemnt;
-// typedef DOMString   DomString;
-// typedef DOMNodeList DomNodeList;
-// typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument DomDocument;
 namespace xmlBase {
   //! Base exception class for Dom
   class DomException : std::exception {
@@ -214,6 +207,12 @@ namespace xmlBase {
     //! have only text content, not mixed content.
     static std::string getTextContent(const DOMElement* elt);
 
+    //! Strip comments from supplied node and all its descendants
+    static void stripComments(DOMNode* elt);
+
+    //! Write document to specified file
+    static bool writeIt(DOMNode* doc, const char* fname);
+
     //! Add attribute of type double to a DOM element, DOMString att name 
     //    static void         addAttribute(DOMElement* elt, const DomString& name, 
     //                                     double value);
@@ -276,6 +275,9 @@ namespace xmlBase {
     /** For temporary use only, such as immediately writing to some 
       output. Applications needing permanence should copy the char array.
       Passing in a null argument is a fatal error */ 
+
+    /// Assume here we know we're not handed a DOMDocument node
+    static void stripCommentsInternal(DOMNode* elt);
 
     /// Return pointer to transcoded XMLCh string.
     static char*        transToChar(const XMLCh* const str);

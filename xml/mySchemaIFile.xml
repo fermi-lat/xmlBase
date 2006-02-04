@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <ifile        xsi:noNamespaceSchemaLocation="ifile.xsd" 
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xml/myIFile.xml,v 1.2 2004/12/29 22:50:00 jrb Exp $"
-       cvs_Revision="$Revision: 1.2 $" >
+cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xml/mySchemaIFile.xml,v 1.1 2005/05/31 19:19:10 jrb Exp $"
+       cvs_Revision="$Revision: 1.1 $" >
   <section name="section1"> Comment for first section
     <item name="section1-val1" value="1.0"> A value (float) </item>
     <item name="section1-val2" value="33550336"> Another value (int) </item>
@@ -13,10 +13,14 @@ cvs_Header="$Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xml/myIFile.xml,v 1.2 
                 string-valued item within a subsection
           </item>
     </section>
+<!--  stick an XML comment in here -->
   </section>
   <section name="section2"> Comment for section2
     <item name="bad-int" value="1a4">Call this an int, but it isn't</item>
     <item name="okItem"  value="4.5"> A well-formed float</item>
+  <!-- comment with what looks like xml inside: 
+         <item name="commented out" value="0.0">stuff</item>
+  -->
   </section>
 </ifile>
 
