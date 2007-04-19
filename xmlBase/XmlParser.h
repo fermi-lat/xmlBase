@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/XmlParser.h,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/XmlParser.h,v 1.2 2005/05/31 19:19:11 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_XmlParser_h
@@ -26,6 +26,11 @@ namespace xmlBase {
     /// Call this method to turn on schema processing (else it's off)
     void doSchema(bool doit);
     ~XmlParser();
+
+    /** In case we want to force use of a certain schema
+     Set @a ns to 'false' to set NoNamespaceSchemaLocation
+    */
+    void setSchemaLocation(const std::string& loc, bool ns=true);
 
     /// Parse an xml file, returning document node if successful
     DOMDocument* parse(const char* const filename, 
