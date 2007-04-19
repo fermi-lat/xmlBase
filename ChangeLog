@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Thu Apr 19 14:52:14 PDT 2007
+xmlBase/src/test
+
+Added Files:
+	test_altSchema.cxx 
+Log Message:
+Test program for new parser function
+
+    *
+------------------------------------------------------------
 User: jrb  Thu Apr 19 14:51:23 PDT 2007
 xmlBase/xmlBase
 
