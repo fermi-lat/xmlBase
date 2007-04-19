@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Thu Apr 19 14:50:38 PDT 2007
+xmlBase/cmt
+
+Modified Files:
+	requirements 
+Log Message:
+Comment out some test applications which are only needed for development
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r3, operation: add
 Package: xmlBase
