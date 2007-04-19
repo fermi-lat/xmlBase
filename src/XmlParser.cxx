@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/XmlParser.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/XmlParser.cxx,v 1.2 2005/05/31 19:19:10 jrb Exp $
 // Author: J. Bogart
 
 #include <iostream>   // for endl, cerr,...
@@ -96,6 +96,12 @@ namespace xmlBase {
     m_parser->setDoNamespaces(doit);
     m_parser->setDoSchema(doit);
     m_parser->setValidationSchemaFullChecking(doit);
+  }
+
+  void XmlParser::setSchemaLocation(const std::string& loc, bool ns) {
+    if (ns) m_parser->setExternalSchemaLocation(loc.c_str());
+    else m_parser->setExternalNoNamespaceSchemaLocation(loc.c_str());
+    return;
   }
 
   XmlParser::~XmlParser() {
