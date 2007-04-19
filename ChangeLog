@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Thu Apr 19 14:51:17 PDT 2007
+xmlBase/src
+
+Modified Files:
+	XmlParser.cxx 
+Log Message:
+Add function to set alternate schema for instance document
+
+    *
+------------------------------------------------------------
 User: jrb  Thu Apr 19 14:50:38 PDT 2007
 xmlBase/cmt
 
