@@ -1,5 +1,5 @@
 package xmlBase
-# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.8 2006/02/04 00:07:38 jrb Exp $
+# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.9 2006/02/04 01:02:51 jrb Exp $
 
 
 version v5r3
@@ -25,8 +25,6 @@ library xmlBase  \
      ${xmlBase_headers} 
 
 
-application entity_test test/entity_test.cxx
-
 application test_xmlBase main.cxx  
 
 application test_mem test/test_mem.cxx 
@@ -35,3 +33,6 @@ application test_IFile test/test_IFile.cxx
 
 application test_write test/test_write.cxx
 
+## normally don't need these
+###application entity_test test/entity_test.cxx
+##application test_altSchema test/test_altSchema.cxx
