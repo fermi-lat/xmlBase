@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: golpa  Mon Oct  1 11:44:01 PDT 2007
+xmlBase/src/test
+
+Modified Files:
+	test_IFile.cxx test_altSchema.cxx test_write.cxx 
+Log Message:
+use commonUtilities
+    *
+------------------------------------------------------------
+User: golpa  Mon Oct  1 11:44:01 PDT 2007
 xmlBase/src
 
 Modified Files:
