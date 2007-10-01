@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: golpa  Mon Oct  1 11:44:01 PDT 2007
+xmlBase/src
+
+Modified Files:
+	main.cxx 
+Log Message:
+use commonUtilities
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r4, operation: add
 Package: xmlBase
