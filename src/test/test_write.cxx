@@ -1,8 +1,10 @@
-// $Header: $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_write.cxx,v 1.2 2006/02/04 00:44:36 jrb Exp $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
 #include "xmlBase/XmlParser.h"
+
+#include "facilities/commonUtilities.h"
 
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -15,19 +17,19 @@ unsigned stripAndWrite(const std::string& fname, bool standalone=false);
 int main() {
     
   // File is well-formed, no reference to dtd or schema
-  std::string WFfile("$(XMLBASEROOT)/xml/test.xml");
+  std::string WFfile = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
   stripAndWrite(WFfile);
 
   // Here's a file with embedded dtd
-  std::string embeddedDtd("$(XMLBASEROOT)/xml/test-dtd.xml");
+  std::string embeddedDtd = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test-dtd.xml");
   stripAndWrite(embeddedDtd); 
 
   // Now do it again for test file referencing dtd
-  std::string refDtd("$(XMLBASEROOT)/xml/myIFile.xml");
+  std::string refDtd = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "myIFile.xml");
   stripAndWrite(refDtd, true);
 
   // One last time for test file referencing schema rather than dtd
-  std::string refSchema("$(XMLBASEROOT)/xml/mySchemaIFile.xml");
+  std::string refSchema = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "mySchemaIFile.xml");
   stripAndWrite(refSchema);
   
   return(0);

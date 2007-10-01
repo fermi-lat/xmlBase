@@ -2,6 +2,8 @@
 
 #include "xmlBase/IFile.h"
 
+#include "facilities/commonUtilities.h"
+
 #include <string>
 #include <iostream>
 
@@ -10,7 +12,7 @@ void lookFor(xmlBase::IFile* ifile, const char* section, const char* item);
 
 int main() {
     
-  std::string filename("$(XMLBASEROOT)/xml/myIFile.xml");
+  std::string filename = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "myIFile.xml");
   xmlBase::IFile* ifile = 0;
 
   ifile = new xmlBase::IFile(filename.c_str());
@@ -28,7 +30,7 @@ int main() {
 
 
   // Now do it again for IFile referencing schema rather than dtd
-  std::string filename2("$(XMLBASEROOT)/xml/mySchemaIFile.xml");
+  std::string filename2 = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "mySchemaIFile.xml");
 
   std::cout << std::endl << std::endl;
   std::cout << "And for my next trick:  process an IFile using XML Schema.";

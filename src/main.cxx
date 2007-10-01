@@ -6,6 +6,7 @@
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include "facilities/Util.h"
+#include "facilities/commonUtilities.h"
 
 #include <string>
 #include <iostream>
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]) {
   
   std::string infile;
   if (argc < 2) { 
-    infile=std::string("$(XMLBASEROOT)/xml/test.xml");
+    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
   }
   else {
     infile = std::string(argv[1]);
