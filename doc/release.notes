@@ -4,6 +4,8 @@
  *
  *                  EOH
 
+   v5r4p1  1-Oct-2007  jrb  (for Navid) switch over to commonUtilities routines
+                            for paths wherever possible
    v5r4   19-Apr-2007  jrb  Add XmlParser::setSchemaLocation function
    v5r3     3-Feb-2006 jrb  Add a couple utilities to Dom class: one to strip
                             out comments in in-memory (DOM) representation of
