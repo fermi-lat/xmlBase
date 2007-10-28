@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.2 2006/02/04 00:07:39 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.3 2006/02/04 00:44:36 jrb Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -28,7 +28,7 @@
 #include <sstream>
 
 
-
+#include <iomanip>
 #include <string>
 #include <cstring>
 #include <cassert>
@@ -395,18 +395,14 @@ namespace xmlBase {
   }
 
   void  Dom::addAttribute(DOMElement* elt, std::string name, 
-                          double value) {
+                          double value, unsigned int precision) {
     if (elt == 0) {
       throw NullNode("from xmlBase::Dom::addAttribute.  null argument");
     }
 
-    //#ifdef DEFECT_NO_STRINGSTREAM
-    //    std::strstream s;
-    //    s << value << '\0';
-    //#else
     std::ostringstream s;
+    s << std::setprecision(precision);
     s << value;
-    //#endif
 
     std::string str = s.str();
     XMLCh* xmlchValue = XMLString::transcode(str.c_str());

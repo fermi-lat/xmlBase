@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.2 2006/02/04 00:07:39 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.3 2006/02/04 00:44:36 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_Dom_h
@@ -220,7 +220,7 @@ namespace xmlBase {
 
     //! Add attribute of type double to a DOM element, std::string att name
     static void         addAttribute(DOMElement* elt, std::string name, 
-                                     double value);
+                                     double value, unsigned int precision=6);
 
     //! Add attribute of type \c int to a DOM element 
     static void         addAttribute(DOMElement* elt, std::string name, 
