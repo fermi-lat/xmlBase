@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jchiang  Sun Oct 28 08:29:13 PDT 2007
+xmlBase/src
+
+Modified Files:
+	Dom.cxx 
+Log Message:
+allow precision to be specified in Dom::addAttribute
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r4p1, operation: add
 Package: xmlBase
