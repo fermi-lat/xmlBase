@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: jchiang  Sun Oct 28 08:29:13 PDT 2007
+xmlBase/xmlBase
+
+Modified Files:
+	Dom.h 
+Log Message:
+allow precision to be specified in Dom::addAttribute
+    *
+------------------------------------------------------------
+User: jchiang  Sun Oct 28 08:29:13 PDT 2007
 xmlBase/src
 
 Modified Files:
