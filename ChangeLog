@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: golpa  Thu Nov 29 08:21:32 PST 2007
+xmlBase/src
+
+Modified Files:
+	main.cxx 
+Log Message:
+changes to use new environment variables
+    *
+------------------------------------------------------------
 TAG
 Tag name: v5r4p2, operation: add
 Package: xmlBase
