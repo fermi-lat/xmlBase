@@ -11,7 +11,7 @@
 void lookFor(xmlBase::IFile* ifile, const char* section, const char* item);
 
 int main() {
-    
+  facilities::commonUtilities::setupEnvironment();
   std::string filename = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "myIFile.xml");
   xmlBase::IFile* ifile = 0;
 

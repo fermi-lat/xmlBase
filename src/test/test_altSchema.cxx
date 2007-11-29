@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_altSchema.cxx,v 1.1 2007/04/19 21:52:14 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_altSchema.cxx,v 1.2 2007/10/01 18:44:01 golpa Exp $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
@@ -15,7 +15,7 @@
 
 
 int main() {
-    
+  facilities::commonUtilities::setupEnvironment();
   // File is well-formed, no reference to dtd or schema
   std::string instanceDoc = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "aDocument.xml");
   std::string theSchema = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "theSchema.xsd");

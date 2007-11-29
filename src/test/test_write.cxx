@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_write.cxx,v 1.2 2006/02/04 00:44:36 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_write.cxx,v 1.3 2007/10/01 18:44:01 golpa Exp $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
@@ -15,7 +15,7 @@
 unsigned stripAndWrite(const std::string& fname, bool standalone=false);
 
 int main() {
-    
+  facilities::commonUtilities::setupEnvironment();
   // File is well-formed, no reference to dtd or schema
   std::string WFfile = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
   stripAndWrite(WFfile);
