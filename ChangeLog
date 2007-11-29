@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 User: golpa  Thu Nov 29 08:21:32 PST 2007
+xmlBase/src/test
+
+Modified Files:
+	entity_test.cxx test_IFile.cxx test_altSchema.cxx test_mem.cxx 
+	test_write.cxx 
+Log Message:
+changes to use new environment variables
+    *
+------------------------------------------------------------
+User: golpa  Thu Nov 29 08:21:32 PST 2007
 xmlBase/src
 
 Modified Files:
