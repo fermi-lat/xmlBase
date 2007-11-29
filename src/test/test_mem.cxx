@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "facilities/commonUtilities.h"
+
 std::string doc_string
 (
  "<?xml version=\"1.0\" ?>"
@@ -33,7 +35,7 @@ std::string doc_string
 
 int main() {
  XERCES_CPP_NAMESPACE_USE
-   
+    facilities::commonUtilities::setupEnvironment();
     xmlBase::XmlParser parser;
     
     DOMDocument* doc = parser.parse(doc_string);

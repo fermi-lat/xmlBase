@@ -21,7 +21,7 @@
 */
 int main(int argc, char* argv[]) {
   XERCES_CPP_NAMESPACE_USE
-  
+  facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 
     infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");

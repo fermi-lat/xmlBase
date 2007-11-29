@@ -14,6 +14,8 @@
 #include <string>
 #include <iostream>
 
+#include "facilities/commonUtilities.h"
+
 XERCES_CPP_NAMESPACE_USE
 class XmlErrorHandler : public ErrorHandler  {
 public:
@@ -40,7 +42,7 @@ void Process(DOMDocument* doc, char* eltName);
 
 //  Start here
 int main(int argc, char* argv[]) {
-  
+  facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 
     infile=std::string("/u/ey/jrb/dev500/vanilla/xmlBase/v5r1/xml/simpleDoc.xml");
