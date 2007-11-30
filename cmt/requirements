@@ -1,8 +1,8 @@
 package xmlBase
-# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.12 2007/10/02 00:28:08 jrb Exp $
+# $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/cmt/requirements,v 1.13 2007/10/28 15:33:12 jchiang Exp $
 
 
-version v5r4p2
+version v5r4p3
 
 author Joanne Bogart <jrb@slac.stanford.edu>
 
