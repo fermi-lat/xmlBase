@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: golpa  Mon Feb 25 11:33:33 PST 2008
+xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Registering missing public include files
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-04-04, operation: add
 Package: xmlBase
