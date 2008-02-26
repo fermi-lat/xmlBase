@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Tue Feb 26 08:28:16 PST 2008
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript xmlBaseLib.py 
+Log Message:
+Add lib dependencies when creating a library
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-04-04, operation: mov
 Package: xmlBase
