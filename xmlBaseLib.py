@@ -1,5 +1,6 @@
 def generate(env, **kw):
-    env.Tool('addLibrary', library = ['xmlBase'], package = 'xmlBase')
+    if not kw.get('depsOnly',0):
+        env.Tool('addLibrary', library = ['xmlBase'], package = 'xmlBase')
     env.Tool('facilitiesLib')
     env.Tool('addLibrary', library = env['xercesLibs'])
 
