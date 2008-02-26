@@ -1,5 +1,15 @@
 ------------------------------------------------------------
 TAG
+Tag name: xmlBase-05-04-04, operation: mov
+Package: xmlBase
+User: glast  Tue Feb 26 08:28:59 2008
+Files:
+  xmlBase/SConscript  1.3
+  xmlBase/xmlBaseLib.py  1.2
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: v5r4p4, operation: mov
 Package: xmlBase
 User: glast  Tue Feb 26 08:28:47 2008
