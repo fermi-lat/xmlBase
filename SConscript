@@ -1,4 +1,4 @@
-#$Id$
+#$Id: SConscript,v 1.3 2008/02/26 16:28:16 glastrm Exp $
 Import('baseEnv')
 Import('listFiles')
 progEnv = baseEnv.Clone()
@@ -15,4 +15,4 @@ test_IFileBin = progEnv.Program('test_IFile', 'src/test/test_IFile.cxx')
 test_writeBin = progEnv.Program('test_write', 'src/test/test_write.cxx')
 
 progEnv.Tool('registerObjects', package = 'xmlBase', libraries = [xmlBaseLib], testApps = [entity_test, test_xmlBaseBin, test_memBin, test_IFileBin, test_writeBin],
-             includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']))
+             includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']), xml = listFiles(['xml/*'], recursive = True))
