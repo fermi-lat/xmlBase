@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Fri Mar 21 09:52:35 PDT 2008
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Register xml files with SCons
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-04-04, operation: mov
 Package: xmlBase
