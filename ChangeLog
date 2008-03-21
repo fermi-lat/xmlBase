@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 TAG
+Tag name: xmlBase-05-04-04, operation: mov
+Package: xmlBase
+User: glastrm  Fri Mar 21 10:09:30 2008
+Files:
+  xmlBase/SConscript  1.4
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: v5r4p4, operation: mov
 Package: xmlBase
 User: glastrm  Fri Mar 21 10:09:03 2008
