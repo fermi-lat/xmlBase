@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: jrb  Fri Mar 28 17:41:56 PDT 2008
+xmlBase/xmlBase
+
+Modified Files:
+	Dom.h XmlParser.h 
+Log Message:
+Move initialization of Xerces from XmlParser to Dom.
+Add utilities to Dom for creating a new document
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Mar 28 17:41:27 PDT 2008
 xmlBase/src/test
 
