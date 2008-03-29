@@ -4,6 +4,8 @@
  *
  *                  EOH
 
+   v5r5   28-Mar-2008  jrb  Add utilities to Dom for creating documents;
+                            move Xerces init from XmlParser class to Dom
    v5r4p3 29-Nov-2007  jrb (for Navid).  Use new environment variable scheme
    v5r4p2 28-Oct-2007  jc   allow precision to be set in Dom::addAttribute 
    v5r4p1  1-Oct-2007  jrb  (for Navid) switch over to commonUtilities routines
