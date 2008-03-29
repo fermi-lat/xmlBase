@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_write.cxx,v 1.3 2007/10/01 18:44:01 golpa Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_write.cxx,v 1.4 2007/11/29 16:21:32 golpa Exp $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
@@ -14,27 +14,70 @@
 
 unsigned stripAndWrite(const std::string& fname, bool standalone=false);
 
+XERCES_CPP_NAMESPACE_USE
+
 int main() {
-  facilities::commonUtilities::setupEnvironment();
+  using facilities::commonUtilities;
+  using xmlBase::Dom;
+
+  // Test out creating a new document
+  DOMElement* myDoc = Dom::makeDocument("myDoc");
+  DOMElement* emptyNode = Dom::makeChildNode(myDoc, "emptyElement");
+  DOMElement* secondChild = Dom::makeChildNode(myDoc, "secondChild");
+  DOMElement* grandChild = 
+    Dom::makeChildNodeWithContent(secondChild, "grandChild", "yoo-hoo");
+  DOMElement* intChild = 
+    Dom::makeChildNodeWithContent(secondChild, "intChild", 2);
+  DOMElement* hexChild = 
+    Dom::makeChildNodeWithHexContent(secondChild, "hexChild", 1023);
+
+  if (Dom::writeIt(myDoc, "myDoc.xml")) {
+    std::cout << "Successfully wrote myDoc.xml" << std::endl;
+  } else {
+    std::cout << "Unable to write myDoc.xml" << std::endl;
+  }
+
+  commonUtilities::setupEnvironment();
   // File is well-formed, no reference to dtd or schema
-  std::string WFfile = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
-  stripAndWrite(WFfile);
+  std::string WFfile = 
+    commonUtilities::joinPath(commonUtilities::getXmlPath("xmlBase"), 
+                              "test.xml");
+  unsigned ret = stripAndWrite(WFfile);
+  std::string summary = ret ? std::string("FAILURE") : std::string("SUCCESS");
+  std::cout << "strip and write " << WFfile << " was a " 
+            << summary << std::endl;
 
   // Here's a file with embedded dtd
-  std::string embeddedDtd = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test-dtd.xml");
-  stripAndWrite(embeddedDtd); 
+  std::string embeddedDtd = 
+    commonUtilities::joinPath(commonUtilities::getXmlPath("xmlBase"), 
+                              "test-dtd.xml");
+  ret = stripAndWrite(embeddedDtd); 
+  summary = ret ? std::string("FAILURE") : std::string("SUCCESS");
+  std::cout << "strip and write " << embeddedDtd << " was a " 
+            << summary << std::endl;
 
   // Now do it again for test file referencing dtd
-  std::string refDtd = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "myIFile.xml");
-  stripAndWrite(refDtd, true);
+  std::string refDtd = 
+    commonUtilities::joinPath(commonUtilities::getXmlPath("xmlBase"),
+                              "myIFile.xml");
+  ret = stripAndWrite(refDtd, true);
+  summary = ret ? std::string("FAILURE") : std::string("SUCCESS");
+  std::cout << "strip and write " << refDtd << " was a " 
+            << summary << std::endl;
 
   // One last time for test file referencing schema rather than dtd
-  std::string refSchema = facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "mySchemaIFile.xml");
-  stripAndWrite(refSchema);
+  std::string refSchema = 
+    commonUtilities::joinPath(commonUtilities::getXmlPath("xmlBase"), 
+                              "mySchemaIFile.xml");
+  ret = stripAndWrite(refSchema);
+  summary = ret ? std::string("FAILURE") : std::string("SUCCESS");
+  std::cout << "strip and write " << refSchema << " was a " 
+            << summary << std::endl;
   
   return(0);
 }
 
+// Return of 0 is good status
 unsigned stripAndWrite(const std::string& fname, bool standalone) {
   XERCES_CPP_NAMESPACE_USE
   using xmlBase::Dom;
