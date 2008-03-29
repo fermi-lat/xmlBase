@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.3 2006/02/04 00:44:36 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.4 2007/10/28 15:29:12 jchiang Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -36,6 +36,7 @@
 namespace {
   XERCES_CPP_NAMESPACE_USE
 
+
   DOMTreeWalker* makeWalker(const DOMNode* node) {
     if (!node) return 0;
     DOMDocument* doc = node->getOwnerDocument();
@@ -52,6 +53,7 @@ namespace {
   
 namespace xmlBase {
   XERCES_CPP_NAMESPACE_USE
+  int Dom::s_didInit = 0;
 
   XMLLCPTranscoder*  Dom::transcoder = 0;
   char*              Dom::transBuf = 0;
@@ -61,6 +63,36 @@ namespace xmlBase {
 
   unsigned int       Dom::xmlchBufSize = 200;
   XMLCh*             Dom::xmlchStar = 0;
+
+
+  bool Dom::doInit() {
+    if (s_didInit == 1) return true;
+
+    try {
+      XMLPlatformUtils::Initialize();
+    }
+    catch(const XMLException& toCatch)
+    {  // may want to redirect in Gaudi environment
+      char*  charMsg = XMLString::transcode(toCatch.getMessage());
+      std::string msg = std::string(charMsg);
+      XMLString::release(&charMsg);
+      
+      std::string errMsg("Error during Xerces-c Initialization: \n");
+      errMsg += " Exception message: ";
+      errMsg += msg;
+      //      if (m_throwErrors) {
+      //        throw ParseException(msg);
+      //      }  else {
+      std::cerr << errMsg << std::endl;
+      return false;
+      //      }
+    }
+    s_didInit = 1;
+    return true;
+  }
+  bool Dom::didInit() {
+    return (s_didInit == 1);
+  }
 
   DOMElement* Dom::findFirstChildByName(const DOMElement* parent, 
                                         const char* const name) {
@@ -74,13 +106,22 @@ namespace xmlBase {
 
     DOMTreeWalker* walk = makeWalker(parent);
     DOMElement* child = static_cast<DOMElement*>(walk->firstChild());
-    if (XMLString::equals(xmlchName, xmlchStar)) return child;
+    if (XMLString::equals(xmlchName, xmlchStar)) {
+      XMLString::release(&xmlchName);
+      return child;
+    }
 
-    if (!child) return 0;
+    if (!child) {
+      XMLString::release(&xmlchName);
+      return 0;
+    }
     // otherwise cycle through children, looking for first with right tag name
     while (! XMLString::equals(child->getNodeName(), xmlchName)) {
       child = static_cast<DOMElement*>(walk->nextSibling());
-      if (!child) return 0;
+      if (!child) {
+        XMLString::release(&xmlchName);
+        return 0;
+      }
     }
 
 
@@ -417,6 +458,8 @@ namespace xmlBase {
       std::cerr << "Msg: " << std::string(msg) 
                 << "Code: " << ex.code << std::endl;
       XMLString::release(&msg);
+      XMLString::release(&xmlchName);
+      XMLString::release(&xmlchValue);
       throw ex;
     }
     XMLString::release(&xmlchName);
@@ -454,6 +497,8 @@ namespace xmlBase {
       std::cerr << "Msg: " << std::string(msg) 
                 << "Code: " << ex.code << std::endl;
       XMLString::release(&msg);
+      XMLString::release(&xmlchName);
+      XMLString::release(&xmlchValue);
       throw ex;
     }
 
@@ -491,6 +536,8 @@ namespace xmlBase {
       std::cerr << "Msg: " << std::string(msg) 
                 << "Code: " << ex.code << std::endl;
       XMLString::release(&msg);
+      XMLString::release(&xmlchName);
+      XMLString::release(&xmlchValue);
       throw ex;
     }
     XMLString::release(&xmlchName);
@@ -519,6 +566,8 @@ namespace xmlBase {
                 << ex.code << std::endl;
       std::cerr.flush();
       XMLString::release(&msg);
+      XMLString::release(&xmlchName);
+      XMLString::release(&xmlchValue);
       throw ex;
     }
 
@@ -857,14 +906,18 @@ namespace xmlBase {
   }
 
   bool Dom::writeIt(DOMNode* doc, const char* fname, bool standalone) {
-    XMLCh tempStr[100];
-    XMLString::transcode("LS", tempStr, 99);
+    //    XMLCh tempStr[100];
+    //    XMLString::transcode("LS", tempStr, 99);
+    XMLCh* tempStr = XMLString::transcode("LS");
     DOMImplementation *impl = 
       DOMImplementationRegistry::getDOMImplementation(tempStr);
+    XMLString::release(&tempStr);
     DOMWriter *theSerializer = ((DOMImplementationLS*)impl)->createDOMWriter();
 
-    XMLString::transcode("format-pretty-print", tempStr, 99);
+    //    XMLString::transcode("format-pretty-print", tempStr, 99);
+    tempStr = XMLString::transcode("format-pretty-print");
     theSerializer->setFeature(tempStr, true);
+    XMLString::release(&tempStr);
 
     XMLFormatTarget *myFormTarget;
 
@@ -879,10 +932,87 @@ namespace xmlBase {
       d->setStandalone(standalone);
     }
 
+    // Apparently status = true is good
     bool status = theSerializer->writeNode(myFormTarget, *doc);
     delete theSerializer;
     delete myFormTarget;
-    return status;
+    return status; 
   }
+
+  /* Routines from configData */
+    DOMElement* Dom::makeDocument(const char* name) {
+
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMImplementation;
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;
+      
+      //      XMLCh tempStr[100];
+      //      XMLString::transcode(name,tempStr,99);
+      if (!doInit()) return 0;
+
+      XMLCh* xmlchName = XMLString::transcode(name);
+      DOMElement* newChild = 
+        DOMImplementation::getImplementation()->createDocument()->createElement(xmlchName);
+      XMLString::release(&xmlchName);
+      newChild->getOwnerDocument()->appendChild(newChild);
+      return newChild;
+    }
+
+
+    DOMElement* Dom::makeChildNode(DOMElement* domNode, const char* name) {
+      
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;
+      
+      //      XMLCh tempStr[100];
+      //      XMLString::transcode(name,tempStr,99);
+      XMLCh* xmlchName = XMLString::transcode(name);
+      DOMElement* newChild = 
+        domNode->getOwnerDocument()->createElement(xmlchName);
+      domNode->appendChild(newChild);
+      XMLString::release(&xmlchName);
+      return newChild;
+    }
+
+    DOMElement* Dom::makeChildNodeWithContent(DOMElement* domNode, 
+                                              const char* name,
+                                              const char* content) {
+      DOMElement* cNode = makeChildNode(domNode,name);
+      if ( cNode == 0 ) return 0;
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
+      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;      
+      //      XMLCh tempStr[100];
+      //      XMLString::transcode(content,tempStr,99);
+      XMLCh* xmlchContent = XMLString::transcode(content);
+      cNode->setTextContent(xmlchContent);
+      XMLString::release(&xmlchContent);
+      return cNode;
+    }
+
+    DOMElement* Dom::makeChildNodeWithContent(DOMElement* domNode, 
+                                              const char* name,
+                                              unsigned int content) {
+      char tmp[20];
+      sprintf(tmp,"%d",content);	
+      return makeChildNodeWithContent(domNode,name,tmp);
+    }
+    
+
+    DOMElement* Dom::makeChildNodeWithContent(DOMElement* domNode, 
+                                              const char* name,
+                                              int content) {
+      char tmp[20];
+      sprintf(tmp,"%d",content);	
+      return makeChildNodeWithContent(domNode,name,tmp);
+    }
+    
+    DOMElement* Dom::makeChildNodeWithHexContent(DOMElement* domNode, 
+                                                 const char* name,
+                                                 unsigned int content) {
+      char tmp[20];
+      sprintf(tmp,"0x%0x", content);	
+      return makeChildNodeWithContent(domNode,name,tmp);
+    }
+
 
 }  // end namespace xmlBase

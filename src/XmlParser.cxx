@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/XmlParser.cxx,v 1.2 2005/05/31 19:19:10 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/XmlParser.cxx,v 1.3 2007/04/19 21:51:17 jrb Exp $
 // Author: J. Bogart
 
 #include <iostream>   // for endl, cerr,...
@@ -32,34 +32,18 @@ namespace {
 
 namespace xmlBase {
   XERCES_CPP_NAMESPACE_USE
-  int XmlParser::didInit = 0;
-  
-  //  class XMLScanner;
 
   XmlParser::XmlParser(bool throwErrors) : m_throwErrors(throwErrors),
                                            m_doSchema(false) {
-    if (!didInit) {
-      try {
-        XMLPlatformUtils::Initialize();
+   // no-op if init was already done
+    if (!Dom::doInit()) {
+      if (m_throwErrors) {
+        throw ParseException("Error during Xerces-c initializaation \n");
+      } else {
+        return;
       }
-      catch(const XMLException& toCatch)
-      {  // may want to redirect in Gaudi environment
-        char*  charMsg = XMLString::transcode(toCatch.getMessage());
-        std::string msg = std::string(charMsg);
-        XMLString::release(&charMsg);
-        
-        std::string errMsg("Error during Xerces-c Initialization: \n");
-        errMsg += " Exception message: ";
-        errMsg += msg;
-        if (m_throwErrors) {
-          throw ParseException(msg);
-        }  else {
-          std::cerr << errMsg << std::endl;
-          return;
-        }
-      }
-      didInit = 1;
     }
+
     m_parser = new XercesDOMParser();
 
     m_errorHandler = new XmlErrorHandler(throwErrors);
@@ -76,8 +60,6 @@ namespace xmlBase {
     m_resolver = new EResolver();
     m_parser->setXMLEntityResolver(m_resolver);
     m_parser->setErrorHandler(m_errorHandler);
-
-    
 
     // Don't keep entity reference nodes.  We don't use them
     // and they can cause confusion
