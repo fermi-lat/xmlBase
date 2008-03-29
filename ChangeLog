@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Fri Mar 28 17:41:27 PDT 2008
+xmlBase/src/test
+
+Modified Files:
+	test_write.cxx 
+Log Message:
+Test new utilities for creating a document
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Mar 28 17:41:03 PDT 2008
 xmlBase/src
 
