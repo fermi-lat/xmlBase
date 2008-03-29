@@ -1,4 +1,15 @@
 ------------------------------------------------------------
+User: jrb  Fri Mar 28 17:41:03 PDT 2008
+xmlBase/src
+
+Modified Files:
+	Dom.cxx XmlParser.cxx 
+Log Message:
+1. Move initialization of Xerces from XmlParser class to Dom
+2. Add utilities to Dom for creating a document
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-04-04, operation: mov
 Package: xmlBase
