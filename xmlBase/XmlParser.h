@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/XmlParser.h,v 1.2 2005/05/31 19:19:11 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/XmlParser.h,v 1.3 2007/04/19 21:51:23 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_XmlParser_h
@@ -53,7 +53,7 @@ namespace xmlBase {
     bool             m_throwErrors;
     bool             m_errorsOccurred;
     bool             m_doSchema;
-    static int didInit;
+    //    static int       s_didInit;
   };
 }
 #endif

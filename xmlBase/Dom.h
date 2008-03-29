@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.3 2006/02/04 00:44:36 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.4 2007/10/28 15:29:13 jchiang Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_Dom_h
@@ -73,6 +73,9 @@ namespace xmlBase {
   class Dom {
 
   public: 
+    /// ensure xerces is initialized
+    static bool didInit();
+    static bool doInit();
     /*! Find first child with given tagname.  Only immediate children
         qualify.
         \param parent    Element whose child is to be found
@@ -207,16 +210,10 @@ namespace xmlBase {
     //! have only text content, not mixed content.
     static std::string getTextContent(const DOMElement* elt);
 
-    //! Strip comments from supplied node and all its descendants
-    static void stripComments(DOMNode* elt);
+    // Following routines all have to do with creating, modifying,
+    // or writing out a document
 
-    //! Write document to specified file
-    static bool writeIt(DOMNode* doc, const char* fname, 
-                        bool standalone=false);
 
-    //! Add attribute of type double to a DOM element, DOMString att name 
-    //    static void         addAttribute(DOMElement* elt, const DomString& name, 
-    //                                     double value);
 
     //! Add attribute of type double to a DOM element, std::string att name
     static void         addAttribute(DOMElement* elt, std::string name, 
@@ -238,8 +235,34 @@ namespace xmlBase {
     static void         addAttribute(DOMElement* elt, std::string name, 
                                      const char * const value);
 
-    
+    //! Create a new DOM document
+    static DOMElement* makeDocument(const char* name);
 
+    //! Add child elements of various kinds to existing element
+    static DOMElement* makeChildNode(DOMElement* domNode, const char* name);
+
+    static DOMElement* 
+    makeChildNodeWithContent(DOMElement* domNode, const char* name,
+                             const char* content);
+
+    static DOMElement* makeChildNodeWithContent(DOMElement* domNode, 
+                                                const char* name,
+                                                unsigned int content);
+
+    static DOMElement* makeChildNodeWithContent(DOMElement* domNode, 
+                                                const char* name,
+                                                int content);
+
+    static DOMElement* makeChildNodeWithHexContent(DOMElement* domNode, 
+                                                   const char* name,
+                                                   unsigned int content);
+
+    //! Strip comments from supplied node and all its descendants
+    static void stripComments(DOMNode* elt);
+
+    //! Write document to specified file.  Return of "true" is good
+    static bool writeIt(DOMNode* doc, const char* fname, 
+                        bool standalone=false);
     // Could get rid of prefix argument for non-pretty print
     //! (Re)serialize and output a DOM node and its children
     //!    to the specified stream.
@@ -298,7 +321,7 @@ namespace xmlBase {
     static int          initTrans(); /*< set up buffers, make transcoder */
 
     static XMLCh*    xmlchStar;
-
+    static int       s_didInit;
 
   };
 } // end namespace
