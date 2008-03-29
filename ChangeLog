@@ -2,6 +2,14 @@
 TAG
 Tag name: xmlBase-05-05-00, operation: add
 Package: xmlBase
+User: glastrm  Fri Mar 28 17:46:51 2008
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-00, operation: add
+Package: xmlBase
 User: glastrm  Fri Mar 28 17:45:27 2008
 Files:
   xmlBase/xmlChangeLog  1.1.1.1
