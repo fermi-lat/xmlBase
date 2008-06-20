@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: glastrm  Thu Jun 19 17:04:27 PDT 2008
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Added Author and Version fields
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-05-00, operation: add
 Package: xmlBase
