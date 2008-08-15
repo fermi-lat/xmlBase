@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: ecephas  Fri Aug 15 14:22:49 PDT 2008
+GlastRelease-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Added SConscript files for packages
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-07-00, operation: add
 Package: xmlBase
