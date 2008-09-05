@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: echarles  Fri Sep  5 14:12:26 PDT 2008
+xmlBase/doc
+
+Modified Files:
+	release.notes 
+Log Message:
+Added Dom::makeComment to allow for putting comments in xml
+    *
+------------------------------------------------------------
 User: echarles  Fri Sep  5 14:12:25 PDT 2008
 xmlBase/cmt
 
