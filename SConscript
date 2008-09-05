@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Id: SConscript,v 1.5 2008/06/20 00:04:27 glastrm Exp $
+# $Id: SConscript,v 1.6 2008/08/15 21:22:49 ecephas Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
-# Version: xmlBase-05-05-00
+# Version: xmlBase-05-05-01
 
 Import('baseEnv')
 Import('listFiles')
