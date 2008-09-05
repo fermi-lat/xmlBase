@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.4 2007/10/28 15:29:12 jchiang Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.5 2008/03/29 00:41:02 jrb Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -11,6 +11,7 @@
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMException.hpp>
+#include <xercesc/dom/DOMComment.hpp>
 #include <xercesc/dom/DOMTreeWalker.hpp>
 #include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLString.hpp>
@@ -1012,6 +1013,15 @@ namespace xmlBase {
       char tmp[20];
       sprintf(tmp,"0x%0x", content);	
       return makeChildNodeWithContent(domNode,name,tmp);
+    }
+
+    DOMComment* Dom::makeComment(DOMElement* domNode, const char* comment) {
+      XMLCh* xmlComName = XMLString::transcode(comment);
+      DOMComment* theComment = 
+        domNode->getOwnerDocument()->createComment(xmlComName);
+      domNode->appendChild(theComment);
+      XMLString::release(&xmlComName);
+      return theComment; 
     }
 
 

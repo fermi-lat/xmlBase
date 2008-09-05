@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.4 2007/10/28 15:29:13 jchiang Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/xmlBase/Dom.h,v 1.5 2008/03/29 00:41:56 jrb Exp $
 // Author:  J. Bogart
 
 #ifndef xmlBase_Dom_h
@@ -11,6 +11,7 @@ class  DOMNode;
 class  XMLLCPTranscoder;
 // class XERCES_CPP_NAMESPACE_QUALIFIER DOMNodeList;
 class  DOMDocument;
+class  DOMComment;
 XERCES_CPP_NAMESPACE_END
 #include <string>
 #include <iostream>
@@ -66,7 +67,8 @@ namespace xmlBase {
   //  XERCES_CPP_NAMESPACE_USE
   using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
   using XERCES_CPP_NAMESPACE_QUALIFIER DOMNode;
-  using XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument;
+  using XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument;  
+  using XERCES_CPP_NAMESPACE_QUALIFIER DOMComment;
   //! This class is just a convenient place for some static functions
   //! and a static buffer to be used as temp space for transcoding
   //! which beef up the DOM interface a bit
@@ -256,6 +258,10 @@ namespace xmlBase {
     static DOMElement* makeChildNodeWithHexContent(DOMElement* domNode, 
                                                    const char* name,
                                                    unsigned int content);
+
+    //! Add a comment after a given node
+    static DOMComment* makeComment(DOMElement* domNode, const char* comment);
+
 
     //! Strip comments from supplied node and all its descendants
     static void stripComments(DOMNode* elt);
