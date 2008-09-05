@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+   v5r5p1 05-Sep-2008  eac  Added Dom::makeComment to allow for putting comments in xml
    v5r5   28-Mar-2008  jrb  Add utilities to Dom for creating documents;
                             move Xerces init from XmlParser class to Dom
    v5r4p3 29-Nov-2007  jrb (for Navid).  Use new environment variable scheme
