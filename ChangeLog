@@ -1,5 +1,13 @@
 ------------------------------------------------------------
 TAG
+Tag name: ScienceTools-09-07-00, operation: del
+Package: xmlBase
+User: glastrm  Wed Sep 17 13:12:30 2008
+Files:
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: xmlBase-05-05-01, operation: add
 Package: xmlBase
 User: glastrm  Fri Sep  5 14:31:20 2008
