@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: ecephas  Mon Dec  8 13:40:47 PST 2008
+GlastRelease-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Check in SConscript for xmlBase v5r5p1 (for branch-tag, GlastReleasev15r49) 
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-09-00, operation: add
 Package: xmlBase
