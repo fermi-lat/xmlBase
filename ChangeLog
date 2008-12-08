@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-01, operation: mov
+Package: xmlBase
+User: glast  Mon Dec  8 14:41:31 2008
+Files:
+  xmlBase/SConscript  1.8
+  xmlBase/SConscript  1.8
+
+    *
+------------------------------------------------------------
 User: ecephas  Mon Dec  8 13:40:47 PST 2008
 GlastRelease-scons/xmlBase
 
