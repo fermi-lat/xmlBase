@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-01, operation: mov
+Package: xmlBase
+User: glast  Mon Dec  8 16:19:06 2008
+Files:
+  xmlBase/xmlBaseLib.py  1.3
+  xmlBase/xmlBaseLib.py  1.3
+
+    *
+------------------------------------------------------------
 User: ecephas  Mon Dec  8 16:08:54 PST 2008
 GlastRelease-scons/xmlBase
 
