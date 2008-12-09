@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: ecephas  Mon Dec  8 16:08:54 PST 2008
+GlastRelease-scons/xmlBase
+
+Modified Files:
+	xmlBaseLib.py 
+Log Message:
+Check in xmlBaseLib.py for xmlBase v5r5p1 (branch-tag, GlastReleasev15r49).
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-05-01, operation: mov
 Package: xmlBase
