@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+TAG
+Tag name: v5r5p2, operation: mov
+Package: xmlBase
+User: glastrm  Fri Dec 19 09:30:26 2008
+Files:
+  xmlBase/SConscript  1.9
+
+    *
+------------------------------------------------------------
 User: glastrm  Fri Dec 19 09:30:20 PST 2008
 xmlBase
 
