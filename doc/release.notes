@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+   v5r5p2 19-Dec-2008  jrb  Fix to test_mem for meaningful return code
    v5r5p1 05-Sep-2008  eac  Added Dom::makeComment to allow for putting comments in xml
    v5r5   28-Mar-2008  jrb  Add utilities to Dom for creating documents;
                             move Xerces init from XmlParser class to Dom
