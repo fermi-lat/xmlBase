@@ -1,8 +1,7 @@
 # -*- python -*-
-# $Id: SConscript,v 1.5 2008/06/20 00:04:27 glastrm Exp $
+# $Id: SConscript,v 1.7 2008/09/05 21:30:35 glastrm Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
-# Version: xmlBase-05-05-00
-
+# Version: xmlBase-05-05-01
 Import('baseEnv')
 Import('listFiles')
 progEnv = baseEnv.Clone()
@@ -20,3 +19,7 @@ test_writeBin = progEnv.Program('test_write',[ 'src/test/test_write.cxx'])
 
 progEnv.Tool('registerObjects', package = 'xmlBase', libraries = [xmlBaseLib], testApps = [entity_test, test_xmlBaseBin, test_memBin, test_IFileBin, test_writeBin],
              includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']), xml = listFiles(['xml/*'], recursive = True))
+
+
+
+
