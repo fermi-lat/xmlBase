@@ -1,4 +1,18 @@
 ------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-01, operation: mov
+Package: xmlBase
+User: glastrm  Thu Jan 22 16:31:44 2009
+Files:
+  xmlBase/SConscript  1.10
+  xmlBase/SConscript  1.10
+  xmlBase/SConscript  1.10
+  xmlBase/xmlBaseLib.py  1.4
+  xmlBase/xmlBaseLib.py  1.4
+  xmlBase/xmlBaseLib.py  1.4
+
+    *
+------------------------------------------------------------
 User: ecephas  Thu Jan 22 16:21:04 PST 2009
 GlastRelease-scons/xmlBase
 
