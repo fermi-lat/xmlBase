@@ -1,5 +1,5 @@
 # -*- python -*-
-# $Id: SConscript,v 1.7 2008/09/05 21:30:35 glastrm Exp $
+# $Id: SConscript,v 1.10 2009/01/23 00:07:22 ecephas Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
 # Version: xmlBase-05-05-01
 Import('baseEnv')
@@ -17,8 +17,19 @@ test_memBin = progEnv.Program('test_mem',[ 'src/test/test_mem.cxx'])
 test_IFileBin = progEnv.Program('test_IFile',[ 'src/test/test_IFile.cxx'])
 test_writeBin = progEnv.Program('test_write',[ 'src/test/test_write.cxx'])
 
-progEnv.Tool('registerObjects', package = 'xmlBase', libraries = [xmlBaseLib], testApps = [entity_test, test_xmlBaseBin, test_memBin, test_IFileBin, test_writeBin],
-             includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']), xml = listFiles(['xml/*'], recursive = True))
+progEnv.Tool('registerObjects', package = 'xmlBase', libraries = [xmlBaseLib],
+             testApps = [entity_test, test_xmlBaseBin, test_memBin,
+                         test_IFileBin, test_writeBin],
+             includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']),
+             xml = listFiles(['xml/*'], recursive = True))
+
+progEnv.Tool('registerTargets', package = 'xmlBase',
+             libraryCxts = [[xmlBaseLib, libEnv]],
+             testAppCxts = [[entity_test, progEnv], [test_xmlBaseBin,progEnv],
+                            [test_memBin, progEnv], [test_IFileBin,progEnv],
+                            [test_writeBin, progEnv]],
+             includes = listFiles(['xmlBase/*.h', 'xmlBase/docMan/*.h']),
+             xml = listFiles(['xml/*'], recursive = True))
 
 
 
