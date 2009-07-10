@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Thu Jul  9 17:35:07 PDT 2009
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Use registerTargets instead of registerObjects
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-15-02, operation: add
 Package: xmlBase
