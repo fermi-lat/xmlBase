@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Thu Jul  9 17:37:11 PDT 2009
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Eliminate old call to registerObjects
+
+    *
+------------------------------------------------------------
 User: jrb  Thu Jul  9 17:35:07 PDT 2009
 ScienceTools-scons/xmlBase
 
