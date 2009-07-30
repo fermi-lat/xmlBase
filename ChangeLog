@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: elwinter  Thu Jul 30 10:08:22 PDT 2009
+xmlBase/src/test
+
+Modified Files:
+      Tag: ScienceToolsv9r15p2
+	entity_test.cxx test_altSchema.cxx 
+Log Message:
+Imported changes from FSSC.
+    *
+------------------------------------------------------------
 TAG
 Tag name: xmlBase-05-05-03, operation: add
 Package: xmlBase
