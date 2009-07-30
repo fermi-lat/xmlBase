@@ -1,10 +1,10 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_altSchema.cxx,v 1.2 2007/10/01 18:44:01 golpa Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/test/test_altSchema.cxx,v 1.3 2007/11/29 16:21:32 golpa Exp $
 /// Test program for serialization of DOM, stripping of comments
 
 #include "xmlBase/Dom.h"
 #include "xmlBase/XmlParser.h"
 
-#include "facilitiles/commonUtilities.h"
+#include "facilities/commonUtilities.h"
 
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
