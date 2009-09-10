@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: jrb  Wed Sep  9 18:22:03 PDT 2009
+GlastRelease-scons/xmlBase/src/test
+
+Modified Files:
+	test_write.cxx 
+Log Message:
+Comment out unused return values to eliminate compiler warnings
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-15-01-02, operation: del
 Package: xmlBase
