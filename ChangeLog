@@ -2,6 +2,26 @@
 TAG
 Tag name: xmlBase-05-05-04, operation: add
 Package: xmlBase
+User: jrb  Thu Sep 10 16:58:17 2009
+Files:
+  xmlBase/xml/test-bad.xml  1.1.1.1
+  xmlBase/xml/test-error.xml  1.1.1.1
+  xmlBase/xml/mySchemaIFile.xml  1.2
+  xmlBase/xml/myIFile.xml  1.4
+  xmlBase/xml/ifile.dtd  1.1.1.1
+  xmlBase/xml/test.xml  1.2
+  xmlBase/xml/simpleExternal.xml  1.1.1.1
+  xmlBase/xml/simple.dtd  1.1.1.1
+  xmlBase/xml/ifile.xsd  1.1
+  xmlBase/xml/test-dtd.xml  1.1.1.1
+  xmlBase/xml/test-arith.xml  1.1.1.1
+  xmlBase/xml/simpleDoc.xml  1.1.1.1
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-04, operation: add
+Package: xmlBase
 User: jrb  Thu Sep 10 16:58:11 2009
 Files:
   xmlBase/src/mainpage.h  1.1.1.1
