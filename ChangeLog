@@ -2,6 +2,21 @@
 TAG
 Tag name: xmlBase-05-05-04, operation: add
 Package: xmlBase
+User: jrb  Thu Sep 10 16:58:23 2009
+Files:
+  xmlBase/xmlBase/EResolver.h  1.2
+  xmlBase/xmlBase/Dom.h  1.6
+  xmlBase/xmlBase/XmlErrorHandler.h  1.1.1.1
+  xmlBase/xmlBase/XmlParser.h  1.4
+  xmlBase/xmlBase/IFile.h  1.1.1.1
+  xmlBase/xmlBase/docMan/DocClient.h  1.1.1.1
+  xmlBase/xmlBase/docMan/DocMan.h  1.1.1.1
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-04, operation: add
+Package: xmlBase
 User: jrb  Thu Sep 10 16:58:17 2009
 Files:
   xmlBase/xml/test-bad.xml  1.1.1.1
