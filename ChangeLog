@@ -2,6 +2,19 @@
 TAG
 Tag name: xmlBase-05-05-05, operation: add
 Package: xmlBase
+User: jrb  Fri Sep 11 13:12:05 2009
+Files:
+  xmlBase/expat/expat.html  1.1.1.1
+  xmlBase/expat/.cvsignore  1.1.1.1
+  xmlBase/expat/xmltok.c  1.1.1.1
+  xmlBase/expat/xmltok_ns.c  1.1.1.1
+  xmlBase/expat/xmlwf/.cvsignore  1.1.1.1
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-05, operation: add
+Package: xmlBase
 User: jrb  Fri Sep 11 13:11:59 2009
 Files:
   xmlBase/doc/release.notes  1.16
