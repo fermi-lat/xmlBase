@@ -2,6 +2,15 @@
 TAG
 Tag name: xmlBase-05-05-05, operation: add
 Package: xmlBase
+User: jrb  Fri Sep 11 13:11:59 2009
+Files:
+  xmlBase/doc/release.notes  1.16
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-05, operation: add
+Package: xmlBase
 User: jrb  Fri Sep 11 13:11:53 2009
 Files:
   xmlBase/cmt/.cvsignore  1.1.1.1
