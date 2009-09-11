@@ -1,4 +1,17 @@
 ------------------------------------------------------------
+TAG
+Tag name: xmlBase-05-05-05, operation: add
+Package: xmlBase
+User: jrb  Fri Sep 11 13:11:47 2009
+Files:
+  xmlBase/xmlChangeLog  1.1.1.1
+  xmlBase/.cvsignore  1.1.1.1
+  xmlBase/ChangeLog  1.168
+  xmlBase/xmlBaseLib.py  1.4
+  xmlBase/SConscript  1.15
+
+    *
+------------------------------------------------------------
 User: jrb  Fri Sep 11 13:11:41 PDT 2009
 GlastRelease-scons/xmlBase/doc
 
