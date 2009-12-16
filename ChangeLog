@@ -1,4 +1,14 @@
 ------------------------------------------------------------
+User: elwinter  Wed Dec 16 15:40:34 PST 2009
+xmlBase/src/test
+
+Modified Files:
+	test_altSchema.cxx 
+Log Message:
+Fixed typo in #include statement.
+
+    *
+------------------------------------------------------------
 TAG
 Tag name: ScienceTools-09-15-06, operation: add
 Package: xmlBase
