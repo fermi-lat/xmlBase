@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: vernaleo  Thu Dec 17 06:53:28 PST 2009
+xmlBase/src/test
+
+Modified Files:
+	entity_test.cxx 
+Log Message:
+Added a change so paths work correctly at SLAC and at the FSSC.
+    *
+------------------------------------------------------------
 User: elwinter  Wed Dec 16 15:40:34 PST 2009
 xmlBase/src/test
 
