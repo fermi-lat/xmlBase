@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+ xmlBase-05-05-06 17-Dec-2009    jcv Fix path in entity_test for FSSC.
  xmlBase-05-05-05 11-Sep-2009    jrb testing tagging code
  xmlBase-05-05-04 10-Sep-2009    jrb Fix compiler warning
    v5r5p3 15-Jul-2009  jrb  Update SConscript
