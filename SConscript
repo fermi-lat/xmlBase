@@ -1,5 +1,5 @@
 # -*- python -*-
-# $Id: SConscript,v 1.15 2009/09/11 20:11:41 jrb Exp $
+# $Id: SConscript,v 1.16 2009/12/17 15:14:22 vernaleo Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
 # Version: xmlBase-05-05-06
 Import('baseEnv')
@@ -7,7 +7,7 @@ Import('listFiles')
 progEnv = baseEnv.Clone()
 libEnv = baseEnv.Clone()
 
-libEnv.Tool('xmlBaseLib', depsOnly = 1)
+
 xmlBaseLib = libEnv.SharedLibrary('xmlBase', [ 'src/Dom.cxx', 'src/IFile.cxx', 'src/XmlErrorHandler.cxx', 'src/XmlParser.cxx', 'src/EResolver.cxx', 'src/docMan/DocMan.cxx'])
 
 progEnv.Tool('xmlBaseLib')
