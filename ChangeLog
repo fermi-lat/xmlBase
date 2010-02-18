@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Wed Feb 17 17:05:06 PST 2010
+ScienceTools-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+Fix library link
+    *
+------------------------------------------------------------
 User: jrb  Mon Feb  1 12:48:05 PST 2010
 CHS-scons/xmlBase
 
