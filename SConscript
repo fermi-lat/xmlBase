@@ -1,5 +1,5 @@
 # -*- python -*-
-# $Id: SConscript,v 1.19 2010/02/22 23:12:10 jrb Exp $
+# $Id: SConscript,v 1.20 2010/02/24 20:07:53 jrb Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
 # Version: xmlBase-05-05-08
 Import('baseEnv')
@@ -7,12 +7,12 @@ Import('listFiles')
 progEnv = baseEnv.Clone()
 libEnv = baseEnv.Clone()
 
-if baseEnv['PLATFORM'] == "win32":
-    libEnv.Tool('xmlBaseLib', depsOnly = 1)
+libEnv.Tool('addLinkDeps', package='xmlBase', toBuild='shared')
 
 xmlBaseLib = libEnv.SharedLibrary('xmlBase', [ 'src/Dom.cxx', 'src/IFile.cxx', 'src/XmlErrorHandler.cxx', 'src/XmlParser.cxx', 'src/EResolver.cxx', 'src/docMan/DocMan.cxx'])
 
 progEnv.Tool('xmlBaseLib')
+
 entity_test = progEnv.Program('entity_test',[ 'src/test/entity_test.cxx'])
 test_xmlBaseBin = progEnv.Program('test_xmlBase',[ 'src/main.cxx'])
 test_memBin = progEnv.Program('test_mem',[ 'src/test/test_mem.cxx'])
