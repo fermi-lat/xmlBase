@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+ xmlBase-05-05-08 24-Feb-2010    jrb fix linking for mac
  xmlBase-05-05-07 22-Feb-2010    jrb correct use of xxLib for libEnv
  xmlBase-05-05-06 17-Dec-2009    jcv Fix path in entity_test for FSSC.
  xmlBase-05-05-05 11-Sep-2009    jrb testing tagging code
