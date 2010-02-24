@@ -1,7 +1,7 @@
 # -*- python -*-
-# $Id: SConscript,v 1.20 2010/02/24 20:07:53 jrb Exp $
+# $Id: SConscript,v 1.21 2010/02/24 20:12:50 jrb Exp $
 # Authors: Joanne Bogart <jrb@slac.stanford.edu>
-# Version: xmlBase-05-05-08
+# Version: xmlBase-05-05-09
 Import('baseEnv')
 Import('listFiles')
 progEnv = baseEnv.Clone()
