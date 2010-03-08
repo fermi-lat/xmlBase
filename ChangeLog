@@ -2,6 +2,14 @@
 TAG
 Tag name: CHS-11-00-00, operation: add
 Package: xmlBase
+User: glastrm  Mon Mar  8 08:45:22 2010
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: CHS-11-00-00, operation: add
+Package: xmlBase
 User: glastrm  Tue Mar  2 15:36:13 2010
 Files:
   xmlBase/xmlChangeLog  1.1.1.1
