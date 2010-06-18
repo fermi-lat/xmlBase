@@ -2,6 +2,14 @@
 TAG
 Tag name: ScienceTools-09-17-00, operation: add
 Package: xmlBase
+User: glastrm  Thu Jun 17 18:43:24 2010
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: ScienceTools-09-17-00, operation: add
+Package: xmlBase
 User: glastrm  Mon Jun 14 21:44:33 2010
 Files:
   xmlBase/xmlChangeLog  1.1.1.1
