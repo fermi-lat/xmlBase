@@ -1,4 +1,4 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.5 2008/03/29 00:41:02 jrb Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/xmlBase/src/Dom.cxx,v 1.6 2008/09/05 21:12:26 echarles Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
@@ -33,6 +33,7 @@
 #include <string>
 #include <cstring>
 #include <cassert>
+#include <cstdio>
 
 namespace {
   XERCES_CPP_NAMESPACE_USE
