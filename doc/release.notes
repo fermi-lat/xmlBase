@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+ xmlBase-05-05-10 20-Dec-2010    jrb add system include for gcc 4.4 compile
  xmlBase-05-05-09 24-Feb-2010    jrb fix linking for mac
  xmlBase-05-05-08 24-Feb-2010    jrb fix linking for mac
  xmlBase-05-05-07 22-Feb-2010    jrb correct use of xxLib for libEnv
