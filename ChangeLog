@@ -1,5 +1,20 @@
 ------------------------------------------------------------
 TAG
+Tag name: GlastRelease-19-03-07, operation: add
+Package: xmlBase
+User: heather  Wed Sep  7 10:11:48 2011
+Files:
+  xmlBase/xmlChangeLog  1.1.1.1
+  xmlBase/.cvsignore  1.2
+  xmlBase/ChangeLog  1.219
+  xmlBase/xmlBaseLib.py  1.4
+  xmlBase/SConscript  1.23
+  xmlBase/cmt/.cvsignore  1.1.1.1
+  xmlBase/cmt/requirements  1.24
+
+    *
+------------------------------------------------------------
+TAG
 Tag name: GlastRelease-19-03-07, operation: del
 Package: xmlBase
 User: glastrm  Tue Sep  6 14:17:23 2011
