@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: cohen  Mon Feb 27 00:16:50 PST 2012
+GlastRelease-scons/xmlBase/src
+
+Modified Files:
+	main.cxx 
+Log Message:
+fix char* to string literal warning
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr24, operation: add
 Package: xmlBase
