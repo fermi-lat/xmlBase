@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc > 2) { // attempt to output
-      char  *hyphen = "-";
+      const char  *hyphen = "-";
 
       std::ostream* out;
 

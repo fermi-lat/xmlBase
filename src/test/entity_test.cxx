@@ -37,7 +37,7 @@ private:
 };                  // end class definition
 
 // forward declaration
-void Process(DOMDocument* doc, char* eltName);
+void Process(DOMDocument* doc, const char* eltName);
 
 
 //  Start here
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
 }
 
-void Process(DOMDocument* doc, char* eltName) {
+void Process(DOMDocument* doc, const char* eltName) {
   XMLCh* xmlchEltName = XMLString::transcode(eltName);
   XMLCh* xmlchName = XMLString::transcode("name");
   XMLCh* xmlchValue = XMLString::transcode("value");
