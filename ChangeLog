@@ -1,5 +1,14 @@
 ------------------------------------------------------------
 User: cohen  Mon Feb 27 00:16:50 PST 2012
+GlastRelease-scons/xmlBase/src/test
+
+Modified Files:
+	entity_test.cxx 
+Log Message:
+fix char* to string literal warning
+    *
+------------------------------------------------------------
+User: cohen  Mon Feb 27 00:16:50 PST 2012
 GlastRelease-scons/xmlBase/src
 
 Modified Files:
