@@ -2,6 +2,14 @@
 TAG
 Tag name: GlastRelease-17-35-24-lp19, operation: add
 Package: xmlBase
+User: heather  Thu Mar 15 12:36:29 2012
+Files:
+
+    *
+------------------------------------------------------------
+TAG
+Tag name: GlastRelease-17-35-24-lp19, operation: add
+Package: xmlBase
 User: heather  Thu Mar 15 11:37:42 2012
 Files:
   xmlBase/xmlChangeLog  1.1.1.1
