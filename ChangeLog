@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Thu Aug 16 16:50:20 PDT 2012
+GlastRelease-scons/xmlBase
+
+Modified Files:
+	xmlBaseLib.py 
+Log Message:
+for Windows no-installed-headers
+    *
+------------------------------------------------------------
 TAG
 Tag name: GlastRelease-17-35-24-gr25, operation: add
 Package: xmlBase
