@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Wed Apr 17 17:23:22 PDT 2013
+GlastRelease-scons/xmlBase/src/test
+
+Added Files:
+	test_parse.cxx 
+Log Message:
+add little app to check if xml file parses successfully
+    *
+------------------------------------------------------------
 User: jrb  Wed Apr 17 17:23:21 PDT 2013
 GlastRelease-scons/xmlBase
 
