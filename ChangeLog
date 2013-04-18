@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Wed Apr 17 17:23:21 PDT 2013
+GlastRelease-scons/xmlBase
+
+Modified Files:
+	SConscript 
+Log Message:
+add little app to check if xml file parses successfully
+    *
+------------------------------------------------------------
 User: jrb  Thu Aug 16 17:06:00 PDT 2012
 xmlBase/cmt
 
