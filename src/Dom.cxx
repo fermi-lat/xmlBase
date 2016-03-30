@@ -1,10 +1,11 @@
-// $Header: /nfs/slac/g/glast/ground/cvs/GlastRelease-scons/xmlBase/src/Dom.cxx,v 1.6 2008/09/05 21:12:26 echarles Exp $
+// $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/Dom.cxx,v 1.7 2010/12/20 16:22:57 jrb Exp $
 // Author:  J. Bogart
 //
 // Implementation of xmlBase::Dom, a convenient place to put static
 // utilities which enhance DOM api.
 
 #include "xmlBase/Dom.h"
+#include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMCharacterData.hpp>
@@ -20,15 +21,12 @@
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationLS.hpp>
 #include <xercesc/dom/DOMImplementationRegistry.hpp>
-#include <xercesc/dom/DOMWriter.hpp>
+#include <xercesc/dom/DOMLSSerializer.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
-
 
 #include "facilities/Util.h"
 
 #include <sstream>
-
-
 #include <iomanip>
 #include <string>
 #include <cstring>
@@ -82,12 +80,8 @@ namespace xmlBase {
       std::string errMsg("Error during Xerces-c Initialization: \n");
       errMsg += " Exception message: ";
       errMsg += msg;
-      //      if (m_throwErrors) {
-      //        throw ParseException(msg);
-      //      }  else {
       std::cerr << errMsg << std::endl;
       return false;
-      //      }
     }
     s_didInit = 1;
     return true;
@@ -475,14 +469,8 @@ namespace xmlBase {
       throw NullNode("from xmlBase::Dom::addAttribute.  Null argument");
     }
 
-
-    //#ifdef DEFECT_NO_STRINGSTREAM
-    //    std::strstream s;
-    //    s << value << '\0';
-    //#else
     std::ostringstream s;
     s << value;
-    //#endif
 
     std::string str = s.str();
 
@@ -515,13 +503,8 @@ namespace xmlBase {
       throw NullNode("from xmlBase::Dom::addAttribute.  Null argument");
     }
 
-    //#ifdef DEFECT_NO_STRINGSTREAM
-    //    std::strstream s;
-    //    s << value << '\0';
-    //#else
     std::ostringstream s;
     s << value;
-    //#endif
 
     std::string str = s.str();
 
@@ -852,17 +835,24 @@ namespace xmlBase {
   }
 
   int Dom::initTrans() {
-    transcoder = XMLPlatformUtils::fgTransService->makeNewLCPTranscoder();
+    // Need to create a dummy MemoryManager to pass to
+    // makeNew LCPTranscoder function in order to please
+    // Xerces3
+    MemoryManager* dummyManager;
+    Dom::transcoder = 
+      XMLPlatformUtils::fgTransService->makeNewLCPTranscoder(dummyManager);
     if (!transcoder) return 0;   // and complain?!? Shouldn't ever happen
     transBuf = new char[transBufSize];
     if (!transBuf) {
       delete transcoder;
+      delete dummyManager;
       return 0;
     }
     xmlchBuf = new XMLCh[xmlchBufSize];
     if (!xmlchBuf) {
       delete [] transBuf;
       delete transcoder;
+      delete dummyManager;
       return 0;
     }
     return 1;
@@ -908,17 +898,18 @@ namespace xmlBase {
   }
 
   bool Dom::writeIt(DOMNode* doc, const char* fname, bool standalone) {
-    //    XMLCh tempStr[100];
-    //    XMLString::transcode("LS", tempStr, 99);
     XMLCh* tempStr = XMLString::transcode("LS");
-    DOMImplementation *impl = 
+    DOMImplementation* impl = 
       DOMImplementationRegistry::getDOMImplementation(tempStr);
     XMLString::release(&tempStr);
-    DOMWriter *theSerializer = ((DOMImplementationLS*)impl)->createDOMWriter();
+    //For Xerces3, implement serializer pointer as separate object 
+    // from configuration pointer
+    DOMLSSerializer *theSerializer = 
+      ((DOMImplementationLS*)impl)->createLSSerializer();
+    DOMConfiguration *tSConfig = theSerializer->getDomConfig();
 
-    //    XMLString::transcode("format-pretty-print", tempStr, 99);
     tempStr = XMLString::transcode("format-pretty-print");
-    theSerializer->setFeature(tempStr, true);
+    tSConfig->setParameter(tempStr, true);
     XMLString::release(&tempStr);
 
     XMLFormatTarget *myFormTarget;
@@ -931,25 +922,25 @@ namespace xmlBase {
 
     if (doc->getNodeType() == DOMNode::DOCUMENT_NODE) {
       DOMDocument* d = static_cast<DOMDocument *>(doc);
-      d->setStandalone(standalone);
+      d->setXmlStandalone(standalone);
     }
 
     // Apparently status = true is good
-    bool status = theSerializer->writeNode(myFormTarget, *doc);
+    //bool status = theSerializer->writeNode(myFormTarget, *doc);
+    // Convert the XMLFormatTarget class to DOMLSOutput to act as
+    // an output destination for the date using the setByteStream
+    // function
+    DOMLSOutput* myOutput = ((DOMImplementationLS*)impl)->createLSOutput();
+    myOutput->setByteStream(myFormTarget);
+    bool status = theSerializer->write(doc, myOutput);
     delete theSerializer;
     delete myFormTarget;
+    myOutput->release();
     return status; 
   }
 
   /* Routines from configData */
     DOMElement* Dom::makeDocument(const char* name) {
-
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMImplementation;
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;
-      
-      //      XMLCh tempStr[100];
-      //      XMLString::transcode(name,tempStr,99);
       if (!doInit()) return 0;
 
       XMLCh* xmlchName = XMLString::transcode(name);
@@ -962,12 +953,6 @@ namespace xmlBase {
 
 
     DOMElement* Dom::makeChildNode(DOMElement* domNode, const char* name) {
-      
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;
-      
-      //      XMLCh tempStr[100];
-      //      XMLString::transcode(name,tempStr,99);
       XMLCh* xmlchName = XMLString::transcode(name);
       DOMElement* newChild = 
         domNode->getOwnerDocument()->createElement(xmlchName);
@@ -981,10 +966,6 @@ namespace xmlBase {
                                               const char* content) {
       DOMElement* cNode = makeChildNode(domNode,name);
       if ( cNode == 0 ) return 0;
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER DOMElement;
-      //      using XERCES_CPP_NAMESPACE_QUALIFIER XMLString;      
-      //      XMLCh tempStr[100];
-      //      XMLString::transcode(content,tempStr,99);
       XMLCh* xmlchContent = XMLString::transcode(content);
       cNode->setTextContent(xmlchContent);
       XMLString::release(&xmlchContent);
