@@ -4,6 +4,7 @@
  *
  *                  EOH
 
+ xmlBase-05-07-00 30-Mar-2016    jrb Updates from Joe for Xerces3.  Also cosmetic clean-up
  xmlBase-05-06-01 17-Apr-2013    jrb Add app for quick check whether xml file parses correctly
  xmlBase-05-06-00 16-Aug-2012    jrb support for Windows no-installed-headers
  xmlBase-05-05-10 20-Dec-2010    jrb add system include for gcc 4.4 compile
