@@ -1,4 +1,13 @@
 ------------------------------------------------------------
+User: jrb  Wed Mar 30 13:23:21 PDT 2016
+xmlBase/src
+
+Modified Files:
+	Dom.cxx 
+Log Message:
+Incorporate Joe's changes for Xerces3
+    *
+------------------------------------------------------------
 User: jrb  Wed Apr 17 17:30:23 PDT 2013
 xmlBase/cmt
 
