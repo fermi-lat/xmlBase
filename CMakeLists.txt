@@ -29,3 +29,18 @@ target_link_libraries(test_mem xmlBase)
 target_link_libraries(test_IFile xmlBase)
 target_link_libraries(test_write xmlBase)
 target_link_libraries(test_parse xmlBase)
+
+###############################################################
+# Installation
+###############################################################
+install(DIRECTORY xmlBase DESTINATION ${FERMI_INSTALL_INCLUDEDIR})
+install(DIRECTORY xml/ DESTINATION ${FERMI_INSTALL_XMLDIR})
+
+install(
+  TARGETS xmlBase
+  # EXPORT fermiTargets
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
