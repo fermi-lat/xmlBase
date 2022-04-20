@@ -37,8 +37,8 @@ install(DIRECTORY xmlBase DESTINATION ${FERMI_INSTALL_INCLUDEDIR})
 install(DIRECTORY xml/ DESTINATION ${FERMI_INSTALL_XMLDIR})
 
 install(
-  TARGETS xmlBase
-  # EXPORT fermiTargets
+  TARGETS xmlBase entity_test test_mem test_IFile test_write test_parse test_xmlBase
+  EXPORT fermiTargets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
