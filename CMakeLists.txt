@@ -34,7 +34,7 @@ target_link_libraries(test_parse xmlBase)
 # Installation
 ###############################################################
 install(DIRECTORY xmlBase DESTINATION ${FERMI_INSTALL_INCLUDEDIR})
-install(DIRECTORY xml/ DESTINATION ${FERMI_INSTALL_XMLDIR}/fermi/xmlBase/)
+install(DIRECTORY xml/ DESTINATION ${FERMI_INSTALL_XMLDIR}/xmlBase)
 
 install(
   TARGETS xmlBase entity_test test_mem test_IFile test_write test_parse test_xmlBase
