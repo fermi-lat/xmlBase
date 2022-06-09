@@ -1,6 +1,6 @@
 ####################################################
 add_library(
-  xmlBase SHARED
+  xmlBase 
   src/Dom.cxx
   src/IFile.cxx
   src/XmlErrorHandler.cxx
