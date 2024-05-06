@@ -14,7 +14,7 @@ target_include_directories(
   $<INSTALL_INTERFACE:>
 )
 
-target_link_libraries(xmlBase PUBLIC PkgConfig::xerces-c facilities)
+target_link_libraries(xmlBase PUBLIC XercesC::XercesC facilities)
 
 add_executable(test_xmlBase src/main.cxx)
 add_executable(entity_test src/test/entity_test.cxx)
