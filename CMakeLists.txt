@@ -16,6 +16,8 @@ target_include_directories(
 
 target_link_libraries(xmlBase PUBLIC XercesC::XercesC facilities)
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 add_executable(test_xmlBase src/main.cxx)
 add_executable(entity_test src/test/entity_test.cxx)
 add_executable(test_mem src/test/test_mem.cxx)
