@@ -16,15 +16,17 @@ namespace xmlBase {
   /// This class provides an interface to the Xerces DOM parser
   /// with validation turned on if the file to be parsed has a dtd.
   class EResolver;
-  using XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument;
-  using XERCES_CPP_NAMESPACE_QUALIFIER XercesDOMParser;
-
+  //using XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument;
+  //using XERCES_CPP_NAMESPACE_QUALIFIER XercesDOMParser;
+  using namespace rapidxml;
 
   class XmlParser {
   public:
     XmlParser(bool throwErrors = false);
 
     /// Call this method to turn on schema processing (else it's off)
+    /// NOTE: rapidXML DOES NOT natively validate or process schemas!
+    /// Disabling for now but need to see if this is something we actually need.
     void doSchema(bool doit);
     ~XmlParser();
 
@@ -34,12 +36,12 @@ namespace xmlBase {
     void setSchemaLocation(const std::string& loc, bool ns=true);
 
     /// Parse an xml file, returning document node if successful
-    DOMDocument* parse(const char* const filename, 
+    xml_document<> parse(const char* const filename, 
                        const std::string& docType=std::string(""));
 
 
     /// Parse an xml file as a string, returning document node if successful
-    DOMDocument* parse(const std::string& buffer,
+    xml_document<> parse(const std::string& buffer,
                        const std::string& docType=std::string("") );
 
     /// Reset the parser so it may be used to parse another document (note
@@ -47,10 +49,10 @@ namespace xmlBase {
     void reset() {m_parser->reset();}
   private:
     /// Xerces-supplied parser which does the real work
-    XercesDOMParser* m_parser;
-    XmlErrorHandler* m_errorHandler;
+    //XercesDOMParser* m_parser;
+    XmlErrorHandler* m_errorHandler;  // TODO: Figure out error handling for rapidXML
     /// Entity resolver
-    EResolver*       m_resolver;    
+    //EResolver*       m_resolver;    // rapidXML DOES NOT have a built-in entity resolver
     bool             m_throwErrors;
     bool             m_errorsOccurred;
     bool             m_doSchema;
