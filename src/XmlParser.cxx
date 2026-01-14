@@ -5,23 +5,38 @@
 #include "xmlBase/XmlParser.h"
 #include "xmlBase/EResolver.h"
 #include "xmlBase/Dom.h"
+#include "xmlBase/rapidxml.hpp"
 #include "facilities/Util.h"
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/framework/XMLValidator.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+//#include <xercesc/framework/LocalFileInputSource.hpp>
+//#include <xercesc/framework/MemBufInputSource.hpp>
+//#include <xercesc/util/XMLString.hpp>
+//#include <xercesc/framework/XMLValidator.hpp>
+//#include <xercesc/util/PlatformUtils.hpp>
 
 namespace {
-  XERCES_CPP_NAMESPACE_USE
-  bool  checkDocType(const DOMDocument* doc, const std::string docType) {
+  using namespace rapidxml;
+  bool  checkDocType(const xml_document<>* doc, const std::string docType) {
     bool ret = false;
-    const DOMDocumentType* typeDecl = doc->getDoctype();
-    if (typeDecl != 0) {
-      const XMLCh* name = typeDecl->getName();
-      XMLCh* transDocType = XMLString::transcode(docType.c_str());
-      ret = XMLString::equals(name, transDocType);
-      XMLString::release(&transDocType);
+    xml_node<> *node = doc.first_node();
+    while (node->next_sibling != 0) {
+      if (node && node->type() == rapidxml::node_doctype) {
+	break;
+      }
+      else {
+	node = node->next_sibling;
+      }
+    }
+    
+    if (node && node->type() == rapidxml::node_doctype) {
+      ret = (node->value() == docType);
+    }
+      
+    //const DOMDocumentType* typeDecl = doc->getDoctype();
+    //if (typeDecl != 0) {
+    // const XMLCh* name = typeDecl->getName();
+    // XMLCh* transDocType = XMLString::transcode(docType.c_str());
+    // ret = XMLString::equals(name, transDocType);
+    // XMLString::release(&transDocType);
 
     }
     return ret;
@@ -101,7 +116,7 @@ namespace xmlBase {
     //XERCES_CPP_NAMESPACE_USE
     // Reset from any previous parse
     m_errorsOccurred = false;
-    m_resolver->clean();
+    m_resolver->clean(); // Clears error resolver
 
     // translate environment variables, if any
     std::string fname(filename);
