@@ -6,7 +6,8 @@
 
 #include "xmlBase/XmlErrorHandler.h"
  // following indirectly includes DOMDocument, DOMElement...
-#include <xercesc/parsers/XercesDOMParser.hpp>
+//#include <xercesc/parsers/XercesDOMParser.hpp>
+#include "xmlBase/rapidxml.hpp"
 #include <string>
 #include <iosfwd>
 

@@ -3,8 +3,9 @@
 
 #include "xmlBase/XmlParser.h"
 #include "xmlBase/Dom.h"
-#include <xercesc/dom/DOMElement.hpp>
-#include <xercesc/dom/DOMNodeList.hpp>
+#include "xmlBase/rapidxml.hpp"
+//#include <xercesc/dom/DOMElement.hpp>
+//#include <xercesc/dom/DOMNodeList.hpp>
 #include "facilities/Util.h"
 #include "facilities/commonUtilities.h"
 
@@ -20,7 +21,7 @@
        else is assumed to be a filename.
 */
 int main(int argc, char* argv[]) {
-  XERCES_CPP_NAMESPACE_USE
+  //XERCES_CPP_NAMESPACE_USE
   facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 
@@ -32,9 +33,9 @@ int main(int argc, char* argv[]) {
     
   facilities::Util::expandEnvVar(&infile);
  
-  xmlBase::XmlParser* parser = new xmlBase::XmlParser(true);
+  xmlBase::XmlParser* parser = new xmlBase::XmlParser(true); // Need to create rapidxml-derived parser object
 
-  DOMDocument* doc = 0;
+  xml_document<>* doc = 0;
   try {
     doc = parser->parse(infile.c_str());
   }
