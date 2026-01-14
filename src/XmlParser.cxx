@@ -73,17 +73,20 @@ namespace xmlBase {
   }
   void XmlParser::doSchema(bool doit) {
     m_doSchema = doit;  // just to keep a record of what we think we're doing
-
-    //    m_parser->setValidationScheme(AbstractDOMParser::Val_Always);
-    m_parser->setDoNamespaces(doit);
-    m_parser->setDoSchema(doit);
-    m_parser->setValidationSchemaFullChecking(doit);
+    /// NOTE: rapidXML DOES NOT natively validate or process schemas!                        
+    /// Disabling for now but need to see if this is something we actually need.
+    ////    m_parser->setValidationScheme(AbstractDOMParser::Val_Always);
+    //m_parser->setDoNamespaces(doit);
+    //m_parser->setDoSchema(doit);
+    //m_parser->setValidationSchemaFullChecking(doit);
+    std::cout << "rapidXML DOES NOT natively validate or process schemas!" << std::endl;
   }
 
   void XmlParser::setSchemaLocation(const std::string& loc, bool ns) {
-    if (ns) m_parser->setExternalSchemaLocation(loc.c_str());
-    else m_parser->setExternalNoNamespaceSchemaLocation(loc.c_str());
-    return;
+    ///if (ns) m_parser->setExternalSchemaLocation(loc.c_str());
+    ///else m_parser->setExternalNoNamespaceSchemaLocation(loc.c_str());
+    ///return;
+    std::cout << "rapidXML DOES NOT natively validate or process schemas!" << std::endl;
   }
 
   XmlParser::~XmlParser() {
@@ -95,7 +98,7 @@ namespace xmlBase {
  
   DOMDocument* XmlParser::parse(const char* const filename, 
                                 const std::string& docType) {
-    XERCES_CPP_NAMESPACE_USE
+    //XERCES_CPP_NAMESPACE_USE
     // Reset from any previous parse
     m_errorsOccurred = false;
     m_resolver->clean();
