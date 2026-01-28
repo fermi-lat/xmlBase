@@ -47,6 +47,8 @@ namespace xmlBase {
     /// Reset the parser so it may be used to parse another document (note
     /// this destroys old DOM)
     void reset() {m_parser->reset();}
+
+    void set_ErrorHandler(
   private:
     /// Xerces-supplied parser which does the real work
     //XercesDOMParser* m_parser;
