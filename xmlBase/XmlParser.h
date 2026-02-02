@@ -4,15 +4,20 @@
 #ifndef xmlBase_XmlParser_h
 #define xmlBase_XmlParser_h
 
+#ifndef RAPIDXML_NO_EXCEPTIONS
+#define RAPIDXML_NO_EXCEPTIONS
+
+
 #include "xmlBase/XmlErrorHandler.h"
  // following indirectly includes DOMDocument, DOMElement...
 //#include <xercesc/parsers/XercesDOMParser.hpp>
 #include "xmlBase/rapidxml.hpp"
 #include <string>
 #include <iosfwd>
-
+#include <iostream>
 
 namespace xmlBase {
+  
   /// This class provides an interface to the Xerces DOM parser
   /// with validation turned on if the file to be parsed has a dtd.
   class EResolver;
@@ -20,6 +25,11 @@ namespace xmlBase {
   //using XERCES_CPP_NAMESPACE_QUALIFIER XercesDOMParser;
   using namespace rapidxml;
 
+  void rapidxml::parse_error_handler(const char *what, void *where){
+    std::cout << "Parse Error: " << what << " at location " << where << std::endl;
+    std::abort;
+  }
+  
   class XmlParser {
   public:
     XmlParser(bool throwErrors = false);
