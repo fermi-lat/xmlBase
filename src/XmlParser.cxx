@@ -46,7 +46,7 @@ namespace {
 
 
 namespace xmlBase {
-  XERCES_CPP_NAMESPACE_USE
+  //XERCES_CPP_NAMESPACE_USE
 
   XmlParser::XmlParser(bool throwErrors) : m_throwErrors(throwErrors),
                                            m_doSchema(false) {
@@ -160,7 +160,7 @@ namespace xmlBase {
       char* c_ptr = &content[0];
       doc.parse<0>(c_ptr);
     }
-    catch   (const XMLException& e) {
+    catch   (const rapidxml::parse_error& e) {
       char* charMsg = XMLString::transcode(e.getMessage());
       std::string msg = std::string(charMsg);
       XMLString::release(&charMsg);
@@ -221,7 +221,7 @@ namespace xmlBase {
       m_parser->parse(source);
       XMLString::release(&buffer);
     }
-    catch   (const XMLException& e) {
+    catch   (const rapidxml::parse_error& e) {
       char* charMsg = XMLString::transcode(e.getMessage());
       std::string msg = std::string(charMsg);
       XMLString::release(&charMsg);
