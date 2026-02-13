@@ -1,14 +1,15 @@
-/// Test program for xmlBase facility.  Parse xml file and optionally
+/// Test program for xmlBase facility.  Parse Axml file and optionally
 /// write it out to a stream.
 
 #include "xmlbase/safe_xml_parser.hpp"
+#include "xml_printer.hpp"
 #include "facilities/Util.h"
 #include "facilities/commonUtilities.h"
 
-#include <string>
+#include <cstring>
 #include <iostream>
-#include <fstream>
-#include <algorithm> // Required for std::remove
+#include <sstream>
+//#include <fstream>
 
 /**
    Two arguments may be supplied for input and output file.
@@ -45,8 +46,6 @@ int main(int argc, char* argv[]) {
       load_flag = 1;
       std::cout << "Document successfully parsed" << std::endl;
       buffer = parse_result.value();
-      auto new_end = std::remove(buffer.begin(), buffer.end(), '\n'); // scrub \n                     
-      buffer.erase(new_end, buffer.end());
     }
   }
   catch (const XmlParseException& e) {
@@ -60,20 +59,13 @@ int main(int argc, char* argv[]) {
   parser->parseString(doc, buffer.data()); // sets xml_doc<> doc to parsed data
   
   if (load_flag != 0) {  // successful
-    //std::cout << "Document successfully parsed" << std::endl;
-
-    // look up some attributes
-    //DOMElement* docElt = doc->getDocumentElement();  // Returns pointer to the root element of xml Doc
     rapidxml::xml_node<>* docRoot = doc.first_node();
-    //DOMElement* attElt = 
-    //  xmlBase::Dom::findFirstChildByName(docElt, "ChildWithAttributes"); // Find a child node by name
     rapidxml::xml_node<>* nameChild = parser->tryGetNode(docRoot, "ChildWithAttributes").value();
 
     double doubleVal;
     int    intVal;
 
     try {
-      //int intVal = parser->getAttributeValue(nameChild, "goodInt"); // Get Specific attribute
       XmlResult<int> intResult = parser->getAttributeValue<int>(nameChild, "goodInt"); // Get Specific attribute
       intVal = intResult.value();
       std::cout << "goodInt value was " << intVal << std::endl << std::endl;
@@ -169,27 +161,40 @@ int main(int argc, char* argv[]) {
     //             << std::endl << std::endl;
     // }
 
-    // if (argc > 2) { // attempt to output
-    //   const char  *hyphen = "-";
+    if (argc > 2) { // attempt to output
+      const char  *hyphen = "-";
 
-    //   std::ostream* out;
+      std::ostream* out;
+      std::ofstream* fileStream = nullptr; // Allows tracking if file stream opened
 
-    //   if (*(argv[2]) == *hyphen) {
-    //     out = &std::cout;
-    //   }
-    //   else {   // try to open file as ostream
-    //     char *filename = argv[2];
-    //     out = new std::ofstream(filename);
-    //   }
-    //   *out << "Document source: " << std::string(argv[1]) << std::endl;
-    //   *out << std::endl << "Straight print of document:" << std::endl;
-    //   xmlBase::Dom::printElement(docElt, *out);
-    //   *out << std::endl << std::endl << "Add indentation and line breaks:" 
-    //        << std::endl;
-    //   xmlBase::Dom::prettyPrintElement(docElt, *out, "");
-    // }
+      if (*(argv[2]) == *hyphen) {
+        out = &std::cout;
+      }
+      else {   // try to open file as ostream
+        char *filename = argv[2];
+	fileStream = new std::ofstream(filename);
+	if (!fileStream->is_open()) {
+	  std::cerr << "Failed to open file: " << filename << std::endl;
+	  delete fileStream;
+	  return 1;
+	}
+	out = fileStream;
+      }
+      *out << "Document source: " << std::string(argv[1]) << std::endl;
+      *out << std::endl << "Straight print of document:" << std::endl;
+      XmlPrinter::printElement(nameChild, *out);
+      *out << std::endl << std::endl << "Add indentation and line breaks:" 
+           << std::endl;
+      XmlPrinter::prettyPrintElement(nameChild, *out, "");
+
+      // If writing to file, clean up and flush the buffer
+      if (fileStream) {
+	fileStream->flush();
+	fileStream->close();
+	delete fileStream;
+      }
+    }
   }
   delete parser;
   return(0);
 }
-B
