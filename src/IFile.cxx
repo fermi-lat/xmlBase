@@ -2,7 +2,7 @@
 
 
 #include "xmlBase/IFile.h"
-#include "xmlBase/safe_xml_parser.h"
+#include "xmlBase/safe_xml_parser.hpp"
 //#include "xmlBase/Dom.h"
 #include "facilities/Util.h"                // for expandEnvVar
 //#include <xercesc/dom/DOMDocument.hpp>
@@ -103,12 +103,12 @@ XERCES_CPP_NAMESPACE_USE
     }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::IFile (const xml_document<>* doc)  
+  IFile::IFile (const rapidxml::xml_document<>* doc)  
     {
       // check that argument is non-null
       if (doc == 0) {
-        //  FATAL_MACRO("Attempt to construct IFile from null xml_document<>");
-        std::cerr << "Attempt to construct IFile from null xml_document<>" 
+        //  FATAL_MACRO("Attempt to construct IFile from null rapidxml::xml_document<>");
+        std::cerr << "Attempt to construct IFile from null rapidxml::xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -117,12 +117,12 @@ XERCES_CPP_NAMESPACE_USE
       domToIni(doc);
     }
   
-  IFile::IFile (const xml_base::xml_node<>* doc)  
+  IFile::IFile (const rapidxml::xml_node<>* doc)  
     {
       // check that argument is non-null
       if (doc == 0) {
-        //        FATAL_MACRO("Attempt to construct IFile from null xml_base::xml_node<>");
-        std::cerr << "Attempt to construct IFile from null xml_document<>" 
+        //        FATAL_MACRO("Attempt to construct IFile from null rapidxml::xml_node<>");
+        std::cerr << "Attempt to construct IFile from null rapidxml::xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -146,11 +146,11 @@ XERCES_CPP_NAMESPACE_USE
 
       // What if this fails (e.g., file doesn't exist or is not 
       // well-formed)?? How to report it?
-      xml_document<>* doc = parser.parse(filenameStr.c_str());
+      rapidxml::xml_document<>* doc = parser.parse(filenameStr.c_str());
       
       // Check it's a good doc.  
       if (doc == 0) {
-        std::cerr << "Attempt to construct IFile from null xml_document<>" 
+        std::cerr << "Attempt to construct IFile from null rapidxml::xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -162,18 +162,18 @@ XERCES_CPP_NAMESPACE_USE
     }
 
   // Work of constructor minus parsing
-  void IFile::domToIni(const xml_document<>* doc) {
-    xml_base::xml_node<>*  root = doc->getDocumentElement();
+  void IFile::domToIni(const rapidxml::xml_document<>* doc) {
+    rapidxml::xml_node<>*  root = doc->getDocumentElement();
     
     // Now invoke element version to do the work
     domToIni(root);
   }        
 
-  void IFile::domToIni(const xml_base::xml_node<>* root) {
+  void IFile::domToIni(const rapidxml::xml_node<>* root) {
     // Done this way, any child elements which are *not* sections
     // will simply be ignored.  Another strategy would be to look 
     // at all children and complain if any are not sections
-    std::vector<xml_base::xml_node<>*> sections;
+    std::vector<rapidxml::xml_node<>*> sections;
     sections = parser->collectChildren(root, "section");
     unsigned int nChild = sections.size();
 
@@ -183,7 +183,7 @@ XERCES_CPP_NAMESPACE_USE
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::addSection(const xml_base::xml_node<>* section)  {
+  void IFile::addSection(const rapidxml::xml_node<>* section)  {
     std::string tagName = section->name();
 
     if (tagName.compare("section") ) {
@@ -197,13 +197,13 @@ XERCES_CPP_NAMESPACE_USE
     IFile_Section* curSection = new IFile_Section(sectName);
     (*this)[curSection->title()]=curSection;
     
-    std::vector<xml_base::xml_node<>*> children;
+    std::vector<rapidxml::xml_node<>*> children;
 
     children = parser->collectChildren(section, "*");
 
     unsigned int nChild = children.size();
     for (unsigned int iChild = 0; iChild < nChild; iChild++) {
-      xml_base::xml_node<>* child = children[iChild];
+      rapidxml::xml_node<>* child = children[iChild];
       std::string tagName = child->name();
       if (!(tagName.compare("section")) ) {
         addSection(child);
