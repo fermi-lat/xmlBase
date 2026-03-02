@@ -193,7 +193,7 @@ XERCES_CPP_NAMESPACE_USE
     }
     
     // start a section
-    std::string sectName = parser->getAttributeValue<string>(section, "name").value();
+    std::string sectName = parser->getAttributeValue<std::string>(section, "name").value();
     IFile_Section* curSection = new IFile_Section(sectName);
     (*this)[curSection->title()]=curSection;
     
@@ -209,8 +209,8 @@ XERCES_CPP_NAMESPACE_USE
         addSection(child);
       }
       else if (!(tagName.compare("item")) ) {
-        std::string  itemName = parser->getAttributeValue<string>(child, "name").value();
-        std::string itemValue = parser->getAttributeValue<string>(child, "value").value();
+        std::string  itemName = parser->getAttributeValue<std::string>(child, "name").value();
+        std::string itemValue = parser->getAttributeValue<std::string>(child, "value").value();
         
         // Make the new item
         IFile_Item* newItem = 
