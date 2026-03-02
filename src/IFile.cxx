@@ -2,10 +2,10 @@
 
 
 #include "xmlBase/IFile.h"
-#include "xmlBase/XmlParser.h"
-#include "xmlBase/Dom.h"
+#include "xmlBase/safe_xml_parser.h"
+//#include "xmlBase/Dom.h"
 #include "facilities/Util.h"                // for expandEnvVar
-#include <xercesc/dom/DOMDocument.hpp>
+//#include <xercesc/dom/DOMDocument.hpp>
 
 #include <sstream>
 #include <vector>
@@ -103,12 +103,12 @@ XERCES_CPP_NAMESPACE_USE
     }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::IFile (const DOMDocument* doc)  
+  IFile::IFile (const xml_document<>* doc)  
     {
       // check that argument is non-null
       if (doc == 0) {
-        //  FATAL_MACRO("Attempt to construct IFile from null DOMDocument");
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+        //  FATAL_MACRO("Attempt to construct IFile from null xml_document<>");
+        std::cerr << "Attempt to construct IFile from null xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -117,12 +117,12 @@ XERCES_CPP_NAMESPACE_USE
       domToIni(doc);
     }
   
-  IFile::IFile (const DOMElement* doc)  
+  IFile::IFile (const xml_base::xml_node<>* doc)  
     {
       // check that argument is non-null
       if (doc == 0) {
-        //        FATAL_MACRO("Attempt to construct IFile from null DOMElement");
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+        //        FATAL_MACRO("Attempt to construct IFile from null xml_base::xml_node<>");
+        std::cerr << "Attempt to construct IFile from null xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -146,11 +146,11 @@ XERCES_CPP_NAMESPACE_USE
 
       // What if this fails (e.g., file doesn't exist or is not 
       // well-formed)?? How to report it?
-      DOMDocument* doc = parser.parse(filenameStr.c_str());
+      xml_document<>* doc = parser.parse(filenameStr.c_str());
       
       // Check it's a good doc.  
       if (doc == 0) {
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
+        std::cerr << "Attempt to construct IFile from null xml_document<>" 
                   << std::endl;
         std::cerr.flush();
         exit(1);
@@ -162,19 +162,19 @@ XERCES_CPP_NAMESPACE_USE
     }
 
   // Work of constructor minus parsing
-  void IFile::domToIni(const DOMDocument* doc) {
-    DOMElement*  root = doc->getDocumentElement();
+  void IFile::domToIni(const xml_document<>* doc) {
+    xml_base::xml_node<>*  root = doc->getDocumentElement();
     
     // Now invoke element version to do the work
     domToIni(root);
   }        
 
-  void IFile::domToIni(const DOMElement* root) {
+  void IFile::domToIni(const xml_base::xml_node<>* root) {
     // Done this way, any child elements which are *not* sections
     // will simply be ignored.  Another strategy would be to look 
     // at all children and complain if any are not sections
-    std::vector<DOMElement*> sections;
-    Dom::getChildrenByTagName(root, "section", sections);
+    std::vector<xml_base::xml_node<>*> sections;
+    sections = parser->collectChildren(root, "section");
     unsigned int nChild = sections.size();
 
     for (unsigned int iChild = 0; iChild < nChild; iChild++) {
@@ -183,8 +183,8 @@ XERCES_CPP_NAMESPACE_USE
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::addSection(const DOMElement* section)  {
-    std::string tagName = Dom::getTagName(section);
+  void IFile::addSection(const xml_base::xml_node<>* section)  {
+    std::string tagName = section->name();
 
     if (tagName.compare("section") ) {
       std::string errorString = 
@@ -193,24 +193,24 @@ XERCES_CPP_NAMESPACE_USE
     }
     
     // start a section
-    std::string sectName = Dom::getAttribute(section, "name");
+    std::string sectName = parser->getAttributeValue<string>(section, "name").value();
     IFile_Section* curSection = new IFile_Section(sectName);
     (*this)[curSection->title()]=curSection;
     
-    std::vector<DOMElement*> children;
+    std::vector<xml_base::xml_node<>*> children;
 
-    Dom::getChildrenByTagName(section, "*", children);
+    children = parser->collectChildren(section, "*");
 
     unsigned int nChild = children.size();
     for (unsigned int iChild = 0; iChild < nChild; iChild++) {
-      DOMElement* child = children[iChild];
-      std::string tagName = Dom::getTagName(child);
+      xml_base::xml_node<>* child = children[iChild];
+      std::string tagName = child->name();
       if (!(tagName.compare("section")) ) {
         addSection(child);
       }
       else if (!(tagName.compare("item")) ) {
-        std::string  itemName = Dom::getAttribute(child, "name");
-        std::string itemValue = Dom::getAttribute(child, "value");
+        std::string  itemName = parser->getAttributeValue<string>(child, "name").value();
+        std::string itemValue = parser->getAttributeValue<string>(child, "value").value();
         
         // Make the new item
         IFile_Item* newItem = 

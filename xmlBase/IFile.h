@@ -17,18 +17,19 @@
 #include <map>
 #include <vector>
 
-#include <xercesc/util/XercesDefs.hpp>
+//#include <xercesc/util/XercesDefs.hpp>
+#include "xmlbase/safe_xml_parser.hpp"
 
-XERCES_CPP_NAMESPACE_BEGIN
-class DOMElement;
-class DOMDocument;
-XERCES_CPP_NAMESPACE_END
+//XERCES_CPP_NAMESPACE_BEGIN
+//class DOMElement;
+//class DOMDocument;
+//XERCES_CPP_NAMESPACE_END
 
 // typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMElement DomElement;
 // typedef XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument DomDocument;
 
 namespace xmlBase {
-  XERCES_CPP_NAMESPACE_USE
+  //XERCES_CPP_NAMESPACE_USE
   class IFileException {
   public:
     IFileException(std::string err) : msg(err) {}
@@ -85,9 +86,9 @@ namespace xmlBase {
       
     public:
       IFile (const char *filename);
-      IFile (const DOMDocument* instrument); 
+      IFile (const xmlbase::xml_document<>* instrument); 
       // or do we want document element rather than DomDocument as arg?
-      IFile (const DOMElement* instrument);
+      IFile (const xmlbase::xml_node<>* instrument);
       
       virtual ~IFile ();
       
@@ -147,9 +148,9 @@ namespace xmlBase {
     private:
       // May want to change & to *, to be more in line with the way
       // Xerces has implemented the DOM interface
-      void       addSection(const DOMElement* elt);
-      void       domToIni(const DOMDocument* doc);
-      void       domToIni(const DOMElement* doc);
+      void       addSection(const xmlbase::xml_node<>* elt);
+      void       domToIni(const xmlbase::xml_document<>* doc);
+      void       domToIni(const xmlbase::xml_node<>* doc);
       virtual const char *_getstring  (const char *section, const char *item,
                                        int failIfNotFoundFlag=1);
       // internal function, that does the work
