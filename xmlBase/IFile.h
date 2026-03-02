@@ -86,9 +86,9 @@ namespace xmlBase {
       
     public:
       IFile (const char *filename);
-      IFile (const xmlbase::xml_document<>* instrument); 
+      IFile (const rapidxml::xml_document<>* instrument); 
       // or do we want document element rather than DomDocument as arg?
-      IFile (const xmlbase::xml_node<>* instrument);
+      IFile (const rapidxml::xml_node<>* instrument);
       
       virtual ~IFile ();
       
@@ -148,9 +148,9 @@ namespace xmlBase {
     private:
       // May want to change & to *, to be more in line with the way
       // Xerces has implemented the DOM interface
-      void       addSection(const xmlbase::xml_node<>* elt);
-      void       domToIni(const xmlbase::xml_document<>* doc);
-      void       domToIni(const xmlbase::xml_node<>* doc);
+      void       addSection(const rapidxml::xml_node<>* elt);
+      void       domToIni(const rapidxml::xml_document<>* doc);
+      void       domToIni(const rapidxml::xml_node<>* doc);
       virtual const char *_getstring  (const char *section, const char *item,
                                        int failIfNotFoundFlag=1);
       // internal function, that does the work
