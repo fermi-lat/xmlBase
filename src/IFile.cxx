@@ -19,7 +19,7 @@
 
 namespace xmlBase {
 
-XERCES_CPP_NAMESPACE_USE
+  //XERCES_CPP_NAMESPACE_USE
 
 #define LEADING  1
 #define ALL      2
@@ -137,33 +137,37 @@ XERCES_CPP_NAMESPACE_USE
     {   
       using facilities::Util;
 
-      XmlParser parser;
+      xml_framework::SafeXmlParser* parser;
       
-      parser.doSchema(true);
+      //parser.doSchema(true);  // RapidXML does not support schema checking
 
       std::string filenameStr = filename;
       Util::expandEnvVar(&filenameStr);
 
       // What if this fails (e.g., file doesn't exist or is not 
       // well-formed)?? How to report it?
-      rapidxml::xml_document<>* doc = parser.parse(filenameStr.c_str());
+      xml_framework::XmlResult<std::vector<char>> parse_result = parser->loadFile(filenameStr.c_str());
+      std::vector<char> buffer = parse_result.value();
+      rapidxml::xml_document<> doc;
+      parser->parseString(doc, buffer.data());
+      //rapidxml::xml_document<>* doc = parser.parse(filenameStr.c_str());
       
-      // Check it's a good doc.  
-      if (doc == 0) {
-        std::cerr << "Attempt to construct IFile from null rapidxml::xml_document<>" 
-                  << std::endl;
-        std::cerr.flush();
-        exit(1);
-        //   FATAL_MACRO("Attempt to construct IFile from null DomDocument");
-      }
+      // Check it's a good doc. TODO: update this check block  
+      // if (doc == 0) {
+      //   std::cerr << "Attempt to construct IFile from null rapidxml::xml_document<>" 
+      //             << std::endl;
+      //   std::cerr.flush();
+      //   exit(1);
+      //   //   FATAL_MACRO("Attempt to construct IFile from null DomDocument");
+      // }
       
       // If so, initialize IFile from it
-      domToIni(doc);
+      domToIni(&doc);
     }
 
   // Work of constructor minus parsing
   void IFile::domToIni(const rapidxml::xml_document<>* doc) {
-    rapidxml::xml_node<>*  root = doc->getDocumentElement();
+    rapidxml::xml_node<>*  root = doc->first_node();
     
     // Now invoke element version to do the work
     domToIni(root);
@@ -173,6 +177,7 @@ XERCES_CPP_NAMESPACE_USE
     // Done this way, any child elements which are *not* sections
     // will simply be ignored.  Another strategy would be to look 
     // at all children and complain if any are not sections
+    xml_framework::SafeXmlParser* parser;
     std::vector<rapidxml::xml_node<>*> sections;
     sections = parser->collectChildren(root, "section");
     unsigned int nChild = sections.size();
@@ -185,7 +190,8 @@ XERCES_CPP_NAMESPACE_USE
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   void IFile::addSection(const rapidxml::xml_node<>* section)  {
     std::string tagName = section->name();
-
+    xml_framework::SafeXmlParser* parser;
+    
     if (tagName.compare("section") ) {
       std::string errorString = 
         "Expecting tagName==section, found " +  tagName;
