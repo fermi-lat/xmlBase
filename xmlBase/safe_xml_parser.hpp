@@ -4,11 +4,16 @@
 #include "rapidxml.hpp"
 #include "rapidxml_error_framework.hpp"
 #include "xml_result.hpp"
+
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <functional>
 #include <charconv>
+#include <cstring>    // Added: Required for std::strlen
+#include <optional>   // Added: Required for std::optional
+#include <cctype>     // Added: Required for std::tolower
+#include <string>
 
 namespace xml_framework {
 
@@ -126,7 +131,7 @@ public:
     }
 
     // Safe attribute access (throws)
-    static XmlAttribute* getRequiredAttribute(XmlNode* node, const char* name) {
+    static XmlAttribute* getRequiredAttribute(const XmlNode* node, const char* name) {
         if (!node) {
             throw XmlAttributeNotFoundException(name, "null node");
         }
@@ -142,7 +147,7 @@ public:
     }
 
     // Safe attribute access (returns Result)
-    static XmlResult<XmlAttribute*> tryGetAttribute(XmlNode* node, 
+    static XmlResult<XmlAttribute*> tryGetAttribute(const XmlNode* node, 
                                                      const char* name) {
         if (!node) {
             return XmlResult<XmlAttribute*>::error(
@@ -179,7 +184,7 @@ public:
 
     // Get attribute value with type conversion
     template<typename T>
-    static XmlResult<T> getAttributeValue(XmlNode* node, const char* attrName) {
+    static XmlResult<T> getAttributeValue(const XmlNode* node, const char* attrName) {
         auto attrResult = tryGetAttribute(node, attrName);
         if (attrResult.isError()) {
             return XmlResult<T>::error(attrResult.error());
@@ -207,13 +212,14 @@ public:
         }
 
         if (!found && throwOnEmpty) {
-            throw XmlNodeNotFoundException(childName, parent->name());
+            throw XmlNodeNotFoundException(childName, 
+                parent->name() ? parent->name() : "unknown parent");
         }
     }
 
-    // Collect all children into vector
-    static std::vector<XmlNode*> collectChildren(XmlNode* parent, 
-                                                  const char* childName = nullptr) {
+    // Collect all children into a vector
+    static std::vector<XmlNode*> getChildren(XmlNode* parent, 
+                                              const char* childName = nullptr) {
         std::vector<XmlNode*> children;
         if (!parent) return children;
 
@@ -226,11 +232,17 @@ public:
     }
 };
 
-// Template specializations for parseValue
+// Template specializations for common types
 template<>
 inline XmlResult<std::string> SafeXmlParser::parseValue<std::string>(
-    const char* str, const std::string&) {
-    return XmlResult<std::string>::success(str ? str : "");
+    const char* str, const std::string& /*ctx*/) {
+    if (!str) {
+        return XmlResult<std::string>::error(
+            XmlErrorCode::TypeConversionError,
+            "Null string"
+        );
+    }
+    return XmlResult<std::string>::success(std::string(str));
 }
 
 template<>
@@ -288,7 +300,7 @@ inline XmlResult<bool> SafeXmlParser::parseValue<bool>(
 
     std::string s(str);
     // Convert to lowercase for comparison
-    for (char& c : s) c = static_cast<char>(std::tolower(c));
+    for (char& c : s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
 
     if (s == "true" || s == "1" || s == "yes") {
         return XmlResult<bool>::success(true);

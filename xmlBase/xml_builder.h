@@ -1,1319 +1,874 @@
-#ifndef SAFE_XML_PARSER_AHPP
-#define SAFE_XML_PARSER_HPP
+#ifndef XML_BUILDER_H
+#define XML_BUILDER_H
 
 #include "rapidxml.hpp"
 #include "rapidxml_error_framework.hpp"
 #include "xml_result.hpp"
+#include "safe_xml_parser.hpp"
+#include "xml_printer.hpp"
+
+#include <string>
+#include <string_view>
+#include <vector>
+#include <optional>
+#include <functional>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <functional>
-#include <charconv>
-#include <algorithm>
-#include <cctype>
-#include <cstring>
-#include <string_view>
-#include <optional>
+#include <map>
+#include <initializer_list>
 #include <type_traits>
+#include <utility>
 
 namespace xml_framework {
 
 // ==================== Forward Declarations ====================
+class XmlElementBuilder;
+class XmlDomBuilder;
 
-template<typename T>
-struct VectorParser;
+// ==================== Value Converter Utility ====================
 
-// ==================== SafeXmlParser Class ====================
+class ValueConverter {
+public:
+    template<typename T>
+    static std::string toString(const T& value) {
+        if constexpr (std::is_same_v<T, bool>) {
+            return value ? "true" : "false";
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            return value;
+        } else if constexpr (std::is_same_v<T, std::string_view>) {
+            return std::string(value);
+        } else if constexpr (std::is_same_v<T, const char*>) {
+            return value ? std::string(value) : "";
+        } else if constexpr (std::is_arithmetic_v<T>) {
+            std::ostringstream oss;
+            oss << value;
+            return oss.str();
+        } else {
+            std::ostringstream oss;
+            oss << value;
+            return oss.str();
+        }
+    }
+    
+    template<typename T>
+    static std::string join(const std::vector<T>& values, 
+                            std::string_view delimiter = ",") {
+        if (values.empty()) {
+            return {};
+        }
+        
+        std::ostringstream oss;
+        bool first = true;
+        
+        for (const auto& value : values) {
+            if (!first) {
+                oss << delimiter;
+            }
+            first = false;
+            oss << toString(value);
+        }
+        
+        return oss.str();
+    }
+};
 
-class SafeXmlParser {
+// ==================== XmlElementBuilder ====================
+
+class XmlElementBuilder {
 public:
     using XmlDocument = rapidxml::xml_document<>;
     using XmlNode = rapidxml::xml_node<>;
     using XmlAttribute = rapidxml::xml_attribute<>;
 
-    // ==================== Configuration ====================
-    
-    // Default delimiter for parsing vector values from strings
-    inline static char vectorDelimiter = ',';
-    
-    // Set custom delimiter for vector parsing
-    static void setVectorDelimiter(char delim) noexcept {
-        vectorDelimiter = delim;
-    }
-    
-    [[nodiscard]] static char getVectorDelimiter() noexcept {
-        return vectorDelimiter;
-    }
+    XmlElementBuilder(XmlDocument& doc, XmlNode* node)
+        : doc_(doc), node_(node) {}
 
-    // ==================== Position Calculation ====================
+    // ==================== Attribute Methods ====================
     
-    [[nodiscard]] static std::pair<size_t, size_t> calculatePosition(
-        const char* source, 
-        const char* position) noexcept {
-        size_t line = 1;
-        size_t column = 1;
-        for (const char* p = source; p < position && *p; ++p) {
-            if (*p == '\n') {
-                ++line;
-                column = 1;
-            } else {
-                ++column;
-            }
+    /**
+     * @brief Add a string_view attribute
+     * @param name Attribute name
+     * @param value Attribute value
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& addAttribute(std::string_view name, std::string_view value) {
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        char* allocValue = doc_.allocate_string(value.data(), value.size() + 1);
+        
+        auto* attr = doc_.allocate_attribute(allocName, allocValue);
+        node_->append_attribute(attr);
+        
+        return *this;
+    }
+    
+    /**
+     * @brief Add an attribute with any convertible type
+     * @tparam T Value type
+     * @param name Attribute name
+     * @param value Attribute value
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& addAttribute(std::string_view name, const T& value) {
+        std::string strValue = ValueConverter::toString(value);
+        return addAttribute(name, std::string_view(strValue));
+    }
+    
+    /**
+     * @brief Add attribute only if optional has a value
+     * @tparam T Optional's value type
+     * @param name Attribute name
+     * @param value Optional value
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& addAttributeIf(std::string_view name, 
+                                       const std::optional<T>& value) {
+        if (value.has_value()) {
+            addAttribute(name, *value);
         }
-        return {line, column};
+        return *this;
     }
-
-    // ==================== XML Parsing ====================
     
-    static void parseString(XmlDocument& doc, char* xmlString, 
-                           [[maybe_unused]] int flags = 0) {
-        try {
-            doc.parse<0>(xmlString);
-        } catch (const rapidxml::parse_error& e) {
-            auto [line, col] = calculatePosition(xmlString, e.where<char>());
-            throw XmlParseException(e.what(), line, col);
+    /**
+     * @brief Add attribute only if condition is true
+     * @tparam T Value type
+     * @param condition Boolean condition
+     * @param name Attribute name
+     * @param value Attribute value
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& addAttributeIf(bool condition,
+                                       std::string_view name, 
+                                       const T& value) {
+        if (condition) {
+            addAttribute(name, value);
         }
+        return *this;
     }
-
-    [[nodiscard]] static XmlResult<void> tryParseString(
-        XmlDocument& doc, 
-        char* xmlString,
-        [[maybe_unused]] int flags = 0) noexcept {
-        try {
-            doc.parse<0>(xmlString);
-            return XmlResult<void>::success();
-        } catch (const rapidxml::parse_error& e) {
-            auto [line, col] = calculatePosition(xmlString, e.where<char>());
-            return XmlResult<void>::error(
-                XmlError{XmlErrorCode::ParseError, e.what(), "", line, col}
-            );
-        } catch (const std::exception& e) {
-            return XmlResult<void>::error(
-                XmlError{XmlErrorCode::ParseError, e.what()}
-            );
-        } catch (...) {
-            return XmlResult<void>::error(
-                XmlError{XmlErrorCode::ParseError, "Unknown parsing error"}
-            );
-        }
+    
+    /**
+     * @brief Set (replace) an attribute value, removes existing if present
+     * @tparam T Value type
+     * @param name Attribute name
+     * @param value New attribute value
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& setAttribute(std::string_view name, const T& value) {
+        removeAttribute(name);
+        return addAttribute(name, value);
     }
-
-    [[nodiscard]] static XmlResult<std::vector<char>> loadFile(
-        const std::string& filename) {
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
-        if (!file.is_open()) {
-            return XmlResult<std::vector<char>>::error(
-                XmlErrorCode::FileNotFound, 
-                "Cannot open file: " + filename
-            );
-        }
-
-        const auto size = file.tellg();
-        if (size < 0) {
-            return XmlResult<std::vector<char>>::error(
-                XmlErrorCode::ParseError,
-                "Failed to determine file size: " + filename
-            );
+    
+    /**
+     * @brief Remove an attribute by name
+     * @param name Attribute name to remove
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& removeAttribute(std::string_view name) {
+        std::string nameStr(name);
+        auto* attr = node_->first_attribute(nameStr.c_str());
+        
+        if (attr) {
+            node_->remove_attribute(attr);
         }
         
-        file.seekg(0, std::ios::beg);
-
-        std::vector<char> buffer(static_cast<size_t>(size) + 1);
-        if (!file.read(buffer.data(), size)) {
-            return XmlResult<std::vector<char>>::error(
-                XmlErrorCode::ParseError,
-                "Failed to read file: " + filename
-            );
-        }
-        buffer[static_cast<size_t>(size)] = '\0';
-
-        return XmlResult<std::vector<char>>::success(std::move(buffer));
+        return *this;
     }
-
-    // ==================== Node Access ====================
     
-    [[nodiscard]] static XmlNode* getRequiredNode(
-        XmlNode* parent, 
-        const char* name,
-        const std::string& context = "") {
-        if (!parent) {
-            throw XmlNodeNotFoundException(name, "null parent");
-        }
-
-        XmlNode* node = parent->first_node(name);
-        if (!node) {
-            throw XmlNodeNotFoundException(name, context);
-        }
-        return node;
+    /**
+     * @brief Check if attribute exists
+     * @param name Attribute name
+     * @return true if attribute exists
+     */
+    [[nodiscard]] bool hasAttribute(std::string_view name) const {
+        std::string nameStr(name);
+        return node_->first_attribute(nameStr.c_str()) != nullptr;
     }
-
-    [[nodiscard]] static XmlResult<XmlNode*> tryGetNode(
-        XmlNode* parent, 
-        const char* name) noexcept {
-        if (!parent) {
-            return XmlResult<XmlNode*>::error(
-                XmlErrorCode::NodeNotFound, 
-                "Parent node is null"
-            );
-        }
-
-        XmlNode* node = parent->first_node(name);
-        if (!node) {
-            return XmlResult<XmlNode*>::error(
-                XmlErrorCode::NodeNotFound,
-                std::string("Node '") + name + "' not found"
-            );
-        }
-        return XmlResult<XmlNode*>::success(node);
-    }
-
-    [[nodiscard]] static std::optional<XmlNode*> getOptionalNode(
-        XmlNode* parent, 
-        const char* name) noexcept {
-        if (!parent) {
-            return std::nullopt;
-        }
-        XmlNode* node = parent->first_node(name);
-        return node ? std::make_optional(node) : std::nullopt;
-    }
-
-    // ==================== Attribute Access ====================
     
-    [[nodiscard]] static XmlAttribute* getRequiredAttribute(
-        XmlNode* node, 
-        const char* name) {
-        if (!node) {
-            throw XmlAttributeNotFoundException(name, "null node");
-        }
-
-        XmlAttribute* attr = node->first_attribute(name);
-        if (!attr) {
-            throw XmlAttributeNotFoundException(
-                name, 
-                node->name() ? node->name() : "unknown"
-            );
-        }
-        return attr;
-    }
-
-    [[nodiscard]] static XmlResult<XmlAttribute*> tryGetAttribute(
-        XmlNode* node, 
-        const char* name) noexcept {
-        if (!node) {
-            return XmlResult<XmlAttribute*>::error(
-                XmlErrorCode::AttributeNotFound,
-                "Node is null"
-            );
-        }
-
-        XmlAttribute* attr = node->first_attribute(name);
-        if (!attr) {
-            return XmlResult<XmlAttribute*>::error(
-                XmlErrorCode::AttributeNotFound,
-                std::string("Attribute '") + name + "' not found"
-            );
-        }
-        return XmlResult<XmlAttribute*>::success(attr);
-    }
-
-    [[nodiscard]] static std::optional<XmlAttribute*> getOptionalAttribute(
-        XmlNode* node,
-        const char* name) noexcept {
-        if (!node) {
-            return std::nullopt;
-        }
-        XmlAttribute* attr = node->first_attribute(name);
-        return attr ? std::make_optional(attr) : std::nullopt;
-    }
-
-    // ==================== Value Parsing (Primary Template Declaration) ====================
-    
+    /**
+     * @brief Get attribute value using SafeXmlParser
+     * @tparam T Target type
+     * @param name Attribute name
+     * @return XmlResult containing the value or error
+     */
     template<typename T>
-    [[nodiscard]] static XmlResult<T> parseValue(
-        const char* str, 
-        const std::string& ctx = "");
-
-    // Internal helper for parsing single values (used by vector parser)
-    template<typename T>
-    [[nodiscard]] static XmlResult<T> parseSingleValue(
-        std::string_view sv, 
-        const std::string& ctx);
-
-    // ==================== Node/Attribute Value Extraction ====================
+    [[nodiscard]] XmlResult<T> getAttributeValue(const char* name) const {
+        return SafeXmlParser::getAttributeValue<T>(node_, name);
+    }
     
+    /**
+     * @brief Add multiple attributes from a map
+     * @param attributes Map of name-value pairs
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& addAttributes(
+        const std::map<std::string, std::string>& attributes) {
+        for (const auto& [name, value] : attributes) {
+            addAttribute(name, value);
+        }
+        return *this;
+    }
+    
+    /**
+     * @brief Add multiple attributes from initializer list
+     * @param attributes List of name-value pairs
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& addAttributes(
+        std::initializer_list<std::pair<std::string_view, std::string_view>> attributes) {
+        for (const auto& [name, value] : attributes) {
+            addAttribute(name, value);
+        }
+        return *this;
+    }
+
+    // ==================== Child Element Methods ====================
+    
+    /**
+     * @brief Add a child element
+     * @param name Element name
+     * @return Builder for the new child element
+     */
+    XmlElementBuilder addElement(std::string_view name) {
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        auto* child = doc_.allocate_node(rapidxml::node_element, allocName);
+        node_->append_node(child);
+        
+        return XmlElementBuilder(doc_, child);
+    }
+    
+    /**
+     * @brief Add a child element with text content
+     * @tparam T Value type
+     * @param name Element name
+     * @param value Element text content
+     * @return Builder for the new child element
+     */
     template<typename T>
-    [[nodiscard]] static XmlResult<T> getNodeValue(XmlNode* node) {
-        if (!node) {
-            return XmlResult<T>::error(
-                XmlErrorCode::NodeNotFound,
-                "Node is null"
-            );
+    XmlElementBuilder addElement(std::string_view name, const T& value) {
+        std::string strValue = ValueConverter::toString(value);
+        
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        char* allocValue = doc_.allocate_string(strValue.c_str(), strValue.size() + 1);
+        
+        auto* child = doc_.allocate_node(rapidxml::node_element, allocName, allocValue);
+        node_->append_node(child);
+        
+        return XmlElementBuilder(doc_, child);
+    }
+    
+    /**
+     * @brief Add multiple child elements with same name from vector
+     * @tparam T Value type
+     * @param name Element name for each
+     * @param values Vector of values
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& addElements(std::string_view name, 
+                                   const std::vector<T>& values) {
+        for (const auto& value : values) {
+            addElement(name, value);
+        }
+        return *this;
+    }
+    
+    /**
+     * @brief Add multiple child elements with custom builder for each
+     * @tparam T Vector element type
+     * @param name Element name for each
+     * @param items Vector of items
+     * @param builder Callback to build each element
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& addElements(
+        std::string_view name,
+        const std::vector<T>& items,
+        const std::function<void(XmlElementBuilder&, const T&)>& builder) {
+        
+        for (const auto& item : items) {
+            auto child = addElement(name);
+            builder(child, item);
+        }
+        return *this;
+    }
+    
+    /**
+     * @brief Prepend a child element (add as first child)
+     * @param name Element name
+     * @return Builder for the new child element
+     */
+    XmlElementBuilder prependElement(std::string_view name) {
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        auto* child = doc_.allocate_node(rapidxml::node_element, allocName);
+        node_->prepend_node(child);
+        
+        return XmlElementBuilder(doc_, child);
+    }
+    
+    /**
+     * @brief Prepend a child element with text content
+     * @tparam T Value type
+     * @param name Element name
+     * @param value Element text content
+     * @return Builder for the new child element
+     */
+    template<typename T>
+    XmlElementBuilder prependElement(std::string_view name, const T& value) {
+        std::string strValue = ValueConverter::toString(value);
+        
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        char* allocValue = doc_.allocate_string(strValue.c_str(), strValue.size() + 1);
+        
+        auto* child = doc_.allocate_node(rapidxml::node_element, allocName, allocValue);
+        node_->prepend_node(child);
+        
+        return XmlElementBuilder(doc_, child);
+    }
+    
+    /**
+     * @brief Insert element before a reference element
+     * @param name Element name
+     * @param before Node to insert before
+     * @return Builder for the new child element
+     */
+    XmlElementBuilder insertElementBefore(std::string_view name, XmlNode* before) {
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        auto* child = doc_.allocate_node(rapidxml::node_element, allocName);
+        node_->insert_node(before, child);
+        
+        return XmlElementBuilder(doc_, child);
+    }
+    
+    // ==================== Text Content Methods ====================
+    
+    /**
+     * @brief Set text content of this element (replaces existing text)
+     * @tparam T Value type
+     * @param value Text content
+     * @return Reference to this builder for chaining
+     */
+    template<typename T>
+    XmlElementBuilder& setText(const T& value) {
+        // Remove existing text nodes
+        auto* child = node_->first_node();
+        while (child) {
+            auto* next = child->next_sibling();
+            if (child->type() == rapidxml::node_data) {
+                node_->remove_node(child);
+            }
+            child = next;
         }
         
-        const char* nodeValue = node->value();
-        if (!nodeValue) {
-            return XmlResult<T>::error(
-                XmlErrorCode::NodeNotFound,
-                "Node value is null"
-            );
-        }
+        std::string strValue = ValueConverter::toString(value);
+        char* allocValue = doc_.allocate_string(strValue.c_str(), strValue.size() + 1);
+        auto* textNode = doc_.allocate_node(rapidxml::node_data, nullptr, allocValue);
+        node_->prepend_node(textNode);
         
-        const char* nodeName = node->name();
-        return parseValue<T>(nodeValue, nodeName ? nodeName : "");
+        return *this;
     }
-
-    template<typename T>
-    [[nodiscard]] static XmlResult<T> getAttributeValue(
-        XmlNode* node, 
-        const char* attrName) {
-        auto attrResult = tryGetAttribute(node, attrName);
-        if (attrResult.isError()) {
-            return XmlResult<T>::error(attrResult.error());
-        }
-        return parseValue<T>(attrResult.value()->value(), attrName);
-    }
-
-    template<typename T>
-    [[nodiscard]] static T getNodeValueOr(XmlNode* node, T defaultValue) {
-        return getNodeValue<T>(node).valueOr(std::move(defaultValue));
-    }
-
-    template<typename T>
-    [[nodiscard]] static T getAttributeValueOr(
-        XmlNode* node, 
-        const char* attrName, 
-        T defaultValue) {
-        return getAttributeValue<T>(node, attrName).valueOr(std::move(defaultValue));
-    }
-
-    // ==================== Child Iteration ====================
     
-    static void forEachChild(
-        XmlNode* parent, 
-        const char* childName,
-        const std::function<void(XmlNode*)>& callback,
-        bool throwOnEmpty = false) {
-        if (!parent) {
-            if (throwOnEmpty) {
-                throw XmlNodeNotFoundException(childName ? childName : "*", "null parent");
-            }
-            return;
-        }
-
-        bool found = false;
-        for (XmlNode* child = parent->first_node(childName);
-             child != nullptr;
-             child = child->next_sibling(childName)) {
-            found = true;
-            callback(child);
-        }
-
-        if (!found && throwOnEmpty) {
-            const char* parentName = parent->name();
-            throw XmlNodeNotFoundException(
-                childName ? childName : "*", 
-                parentName ? parentName : "unknown"
-            );
-        }
-    }
-
-    [[nodiscard]] static std::vector<XmlNode*> collectChildren(
-        XmlNode* parent, 
-        const char* childName = nullptr) {
-        std::vector<XmlNode*> children;
-        if (!parent) {
-            return children;
-        }
-
-        for (XmlNode* child = parent->first_node(childName);
-             child != nullptr;
-             child = child->next_sibling(childName)) {
-            children.push_back(child);
-        }
-        return children;
-    }
-
-    // ==================== Vector Value Collection from Child Nodes ====================
-    
-    template<typename T>
-    [[nodiscard]] static XmlResult<std::vector<T>> collectChildValues(
-        XmlNode* parent,
-        const char* childName) {
-        if (!parent) {
-            return XmlResult<std::vector<T>>::error(
-                XmlErrorCode::NodeNotFound, 
-                "Parent node is null"
-            );
-        }
-
-        std::vector<T> values;
-        XmlError aggregateError{
-            XmlErrorCode::PartialFailure, 
-            "Some child values failed to parse"
-        };
-        bool hasErrors = false;
-
-        for (XmlNode* child = parent->first_node(childName);
-             child != nullptr;
-             child = child->next_sibling(childName)) {
-            auto result = getNodeValue<T>(child);
-            if (result.isSuccess()) {
-                values.push_back(std::move(result).value());
-            } else {
-                hasErrors = true;
-                aggregateError.addNestedError(std::move(result).error());
-            }
-        }
-
-        if (values.empty() && hasErrors) {
-            return XmlResult<std::vector<T>>::error(std::move(aggregateError));
-        }
-
-        return XmlResult<std::vector<T>>::success(std::move(values));
-    }
-
-    template<typename T>
-    [[nodiscard]] static XmlResult<std::vector<T>> collectChildValuesStrict(
-        XmlNode* parent,
-        const char* childName) {
-        if (!parent) {
-            return XmlResult<std::vector<T>>::error(
-                XmlErrorCode::NodeNotFound, 
-                "Parent node is null"
-            );
-        }
-
-        std::vector<T> values;
-
-        for (XmlNode* child = parent->first_node(childName);
-             child != nullptr;
-             child = child->next_sibling(childName)) {
-            auto result = getNodeValue<T>(child);
-            if (result.isError()) {
-                return XmlResult<std::vector<T>>::error(std::move(result).error());
-            }
-            values.push_back(std::move(result).value());
-        }
-
-        return XmlResult<std::vector<T>>::success(std::move(values));
-    }
-
-    // ==================== String Utility Functions ====================
-    
-    [[nodiscard]] static std::string_view trim(std::string_view sv) noexcept {
-        while (!sv.empty() && 
-               std::isspace(static_cast<unsigned char>(sv.front()))) {
-            sv.remove_prefix(1);
-        }
-        while (!sv.empty() && 
-               std::isspace(static_cast<unsigned char>(sv.back()))) {
-            sv.remove_suffix(1);
-        }
-        return sv;
-    }
-
-    [[nodiscard]] static std::vector<std::string_view> split(
-        std::string_view sv, 
-        char delimiter) {
-        std::vector<std::string_view> parts;
-        size_t start = 0;
+    /**
+     * @brief Add CDATA section
+     * @param data CDATA content
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& addCData(std::string_view data) {
+        char* allocValue = doc_.allocate_string(data.data(), data.size() + 1);
+        auto* cdataNode = doc_.allocate_node(rapidxml::node_cdata, nullptr, allocValue);
+        node_->append_node(cdataNode);
         
-        for (size_t i = 0; i <= sv.size(); ++i) {
-            if (i == sv.size() || sv[i] == delimiter) {
-                auto part = trim(sv.substr(start, i - start));
-                if (!part.empty()) {
-                    parts.push_back(part);
+        return *this;
+    }
+    
+    /**
+     * @brief Get element text value using SafeXmlParser
+     * @tparam T Target type
+     * @return XmlResult containing the value or error
+     */
+    template<typename T>
+    [[nodiscard]] XmlResult<T> getValue() const {
+        return SafeXmlParser::getNodeValue<T>(node_);
+    }
+    
+    // ==================== Comment Methods ====================
+    
+    /**
+     * @brief Add a comment as child
+     * @param comment Comment text
+     * @return Reference to this builder for chaining
+     */
+    XmlElementBuilder& addComment(std::string_view comment) {
+        char* allocValue = doc_.allocate_string(comment.data(), comment.size() + 1);
+        auto* commentNode = doc_.allocate_node(rapidxml::node_comment, nullptr, allocValue);
+        node_->append_node(commentNode);
+        
+        return *this;
+    }
+    
+    // ==================== Navigation Methods ====================
+    
+    /**
+     * @brief Get parent element builder
+     * @return Optional builder for parent, empty if no parent element
+     */
+    [[nodiscard]] std::optional<XmlElementBuilder> parent() {
+        auto* parentNode = node_->parent();
+        if (parentNode && parentNode->type() == rapidxml::node_element) {
+            return XmlElementBuilder(doc_, parentNode);
+        }
+        return std::nullopt;
+    }
+    
+    /**
+     * @brief Navigate to parent and continue building
+     * @return Reference to parent builder
+     * @throws XmlException if no parent element exists
+     */
+    XmlElementBuilder& up() {
+        auto* parentNode = node_->parent();
+        if (!parentNode || parentNode->type() != rapidxml::node_element) {
+            throw XmlException("No parent element", "XmlElementBuilder::up");
+        }
+        node_ = parentNode;
+        return *this;
+    }
+    
+    /**
+     * @brief Get first child element with given name
+     * @param name Child element name
+     * @return Optional builder for child, empty if not found
+     */
+    [[nodiscard]] std::optional<XmlElementBuilder> child(std::string_view name) {
+        std::string nameStr(name);
+        auto* childNode = node_->first_node(nameStr.c_str());
+        if (childNode && childNode->type() == rapidxml::node_element) {
+            return XmlElementBuilder(doc_, childNode);
+        }
+        return std::nullopt;
+    }
+    
+    /**
+     * @brief Get the underlying node
+     * @return Pointer to the XML node
+     */
+    [[nodiscard]] XmlNode* node() const noexcept { return node_; }
+    
+    /**
+     * @brief Get reference to the document
+     * @return Reference to the XML document
+     */
+    [[nodiscard]] XmlDocument& document() noexcept { return doc_; }
+
+private:
+    XmlDocument& doc_;
+    XmlNode* node_;
+};
+
+// ==================== XmlDomBuilder ====================
+
+class XmlDomBuilder {
+public:
+    using XmlDocument = rapidxml::xml_document<>;
+    using XmlNode = rapidxml::xml_node<>;
+
+    XmlDomBuilder() = default;
+    
+    // Non-copyable
+    XmlDomBuilder(const XmlDomBuilder&) = delete;
+    XmlDomBuilder& operator=(const XmlDomBuilder&) = delete;
+    
+    // Movable
+    XmlDomBuilder(XmlDomBuilder&& other) noexcept 
+        : doc_(), sourceBuffer_(std::move(other.sourceBuffer_)) {
+        // Note: rapidxml::xml_document doesn't have a proper move constructor,
+        // so we need to re-parse if there's content
+        if (!sourceBuffer_.empty()) {
+            try {
+                doc_.parse<rapidxml::parse_default>(sourceBuffer_.data());
+            } catch (...) {
+                sourceBuffer_.clear();
+            }
+        }
+    }
+    
+    XmlDomBuilder& operator=(XmlDomBuilder&& other) noexcept {
+        if (this != &other) {
+            doc_.clear();
+            sourceBuffer_ = std::move(other.sourceBuffer_);
+            if (!sourceBuffer_.empty()) {
+                try {
+                    doc_.parse<rapidxml::parse_default>(sourceBuffer_.data());
+                } catch (...) {
+                    sourceBuffer_.clear();
                 }
-                start = i + 1;
             }
         }
+        return *this;
+    }
+    
+    // ==================== Document Creation ====================
+    
+    /**
+     * @brief Create a new empty document
+     * @return Reference to this builder for chaining
+     */
+    XmlDomBuilder& createDocument() {
+        doc_.clear();
+        sourceBuffer_.clear();
+        return *this;
+    }
+    
+    /**
+     * @brief Add XML declaration (<?xml version="1.0" encoding="UTF-8"?>)
+     * @param version XML version (default "1.0")
+     * @param encoding Character encoding (default "UTF-8")
+     * @param standalone Standalone attribute (default empty/omitted)
+     * @return Reference to this builder for chaining
+     */
+    XmlDomBuilder& addDeclaration(
+        std::string_view version = "1.0",
+        std::string_view encoding = "UTF-8",
+        std::string_view standalone = "") {
         
-        return parts;
-    }
-
-    // Grant VectorParser access to private/protected members
-    template<typename T>
-    friend struct VectorParser;
-};
-
-// ==================== Scalar Type Specializations ====================
-
-template<>
-[[nodiscard]] inline XmlResult<std::string> SafeXmlParser::parseValue<std::string>(
-    const char* str, 
-    [[maybe_unused]] const std::string& ctx) {
-    return XmlResult<std::string>::success(str ? std::string(str) : std::string{});
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::string_view> SafeXmlParser::parseValue<std::string_view>(
-    const char* str, 
-    [[maybe_unused]] const std::string& ctx) {
-    return XmlResult<std::string_view>::success(
-        str ? std::string_view(str) : std::string_view{}
-    );
-}
-
-template<>
-[[nodiscard]] inline XmlResult<int> SafeXmlParser::parseValue<int>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to int",
-            ctx
-        );
-    }
-
-    // Skip leading whitespace
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    
-    // Skip trailing whitespace for end pointer
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    int value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to int",
-            ctx
-        );
-    }
-    return XmlResult<int>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long> SafeXmlParser::parseValue<long>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to long",
-            ctx
-        );
-    }
-
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    long value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to long",
-            ctx
-        );
-    }
-    return XmlResult<long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long long> SafeXmlParser::parseValue<long long>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to long long",
-            ctx
-        );
-    }
-
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    long long value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to long long",
-            ctx
-        );
-    }
-    return XmlResult<long long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned int> SafeXmlParser::parseValue<unsigned int>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<unsigned int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to unsigned int",
-            ctx
-        );
-    }
-
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    unsigned int value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<unsigned int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to unsigned int",
-            ctx
-        );
-    }
-    return XmlResult<unsigned int>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned long> SafeXmlParser::parseValue<unsigned long>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<unsigned long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to unsigned long",
-            ctx
-        );
-    }
-
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    unsigned long value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<unsigned long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to unsigned long",
-            ctx
-        );
-    }
-    return XmlResult<unsigned long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned long long> SafeXmlParser::parseValue<unsigned long long>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<unsigned long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to unsigned long long",
-            ctx
-        );
-    }
-
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-    
-    const char* end = str + std::strlen(str);
-    while (end > str && std::isspace(static_cast<unsigned char>(*(end - 1)))) {
-        --end;
-    }
-    
-    unsigned long long value{};
-    auto [ptr, ec] = std::from_chars(str, end, value);
-    
-    if (ec != std::errc{} || ptr != end) {
-        return XmlResult<unsigned long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to unsigned long long",
-            ctx
-        );
-    }
-    return XmlResult<unsigned long long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<float> SafeXmlParser::parseValue<float>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<float>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to float",
-            ctx
-        );
-    }
-
-    try {
-        std::size_t pos{};
-        float value = std::stof(str, &pos);
+        auto* decl = doc_.allocate_node(rapidxml::node_declaration);
         
-        // Check that we consumed all non-whitespace characters
-        const char* remaining = str + pos;
-        while (*remaining && std::isspace(static_cast<unsigned char>(*remaining))) {
-            ++remaining;
+        char* allocVersion = doc_.allocate_string(version.data(), version.size() + 1);
+        decl->append_attribute(doc_.allocate_attribute("version", allocVersion));
+        
+        if (!encoding.empty()) {
+            char* allocEncoding = doc_.allocate_string(encoding.data(), encoding.size() + 1);
+            decl->append_attribute(doc_.allocate_attribute("encoding", allocEncoding));
         }
         
-        if (*remaining != '\0') {
-            return XmlResult<float>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + std::string(str) + "' to float",
-                ctx
-            );
+        if (!standalone.empty()) {
+            char* allocStandalone = doc_.allocate_string(standalone.data(), standalone.size() + 1);
+            decl->append_attribute(doc_.allocate_attribute("standalone", allocStandalone));
         }
         
-        return XmlResult<float>::success(value);
-    } catch (const std::invalid_argument&) {
-        return XmlResult<float>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to float (invalid)",
-            ctx
-        );
-    } catch (const std::out_of_range&) {
-        return XmlResult<float>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to float (out of range)",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<double> SafeXmlParser::parseValue<double>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to double",
-            ctx
-        );
-    }
-
-    try {
-        std::size_t pos{};
-        double value = std::stod(str, &pos);
-        
-        const char* remaining = str + pos;
-        while (*remaining && std::isspace(static_cast<unsigned char>(*remaining))) {
-            ++remaining;
-        }
-        
-        if (*remaining != '\0') {
-            return XmlResult<double>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + std::string(str) + "' to double",
-                ctx
-            );
-        }
-        
-        return XmlResult<double>::success(value);
-    } catch (const std::invalid_argument&) {
-        return XmlResult<double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to double (invalid)",
-            ctx
-        );
-    } catch (const std::out_of_range&) {
-        return XmlResult<double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to double (out of range)",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long double> SafeXmlParser::parseValue<long double>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<long double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to long double",
-            ctx
-        );
-    }
-
-    try {
-        std::size_t pos{};
-        long double value = std::stold(str, &pos);
-        
-        const char* remaining = str + pos;
-        while (*remaining && std::isspace(static_cast<unsigned char>(*remaining))) {
-            ++remaining;
-        }
-        
-        if (*remaining != '\0') {
-            return XmlResult<long double>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + std::string(str) + "' to long double",
-                ctx
-            );
-        }
-        
-        return XmlResult<long double>::success(value);
-    } catch (const std::invalid_argument&) {
-        return XmlResult<long double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to long double (invalid)",
-            ctx
-        );
-    } catch (const std::out_of_range&) {
-        return XmlResult<long double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(str) + "' to long double (out of range)",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<bool> SafeXmlParser::parseValue<bool>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str) {
-        return XmlResult<bool>::error(
-            XmlErrorCode::TypeConversionError,
-            "Null string cannot be converted to bool",
-            ctx
-        );
-    }
-
-    // Skip leading whitespace
-    while (*str && std::isspace(static_cast<unsigned char>(*str))) {
-        ++str;
-    }
-
-    std::string s(str);
-    
-    // Trim trailing whitespace
-    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back()))) {
-        s.pop_back();
+        doc_.prepend_node(decl);
+        return *this;
     }
     
-    // Convert to lowercase for comparison
-    std::transform(s.begin(), s.end(), s.begin(), 
-        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-
-    if (s == "true" || s == "1" || s == "yes" || s == "on") {
-        return XmlResult<bool>::success(true);
+    /**
+     * @brief Add a comment at document level
+     * @param comment Comment text
+     * @return Reference to this builder for chaining
+     */
+    XmlDomBuilder& addComment(std::string_view comment) {
+        char* allocValue = doc_.allocate_string(comment.data(), comment.size() + 1);
+        auto* commentNode = doc_.allocate_node(rapidxml::node_comment, nullptr, allocValue);
+        doc_.append_node(commentNode);
+        return *this;
     }
-    if (s == "false" || s == "0" || s == "no" || s == "off") {
-        return XmlResult<bool>::success(false);
-    }
-
-    return XmlResult<bool>::error(
-        XmlErrorCode::TypeConversionError,
-        "Cannot convert '" + std::string(str) + "' to bool",
-        ctx
-    );
-}
-
-template<>
-[[nodiscard]] inline XmlResult<char> SafeXmlParser::parseValue<char>(
-    const char* str, 
-    const std::string& ctx) {
-    if (!str || *str == '\0') {
-        return XmlResult<char>::error(
-            XmlErrorCode::TypeConversionError,
-            "Empty string cannot be converted to char",
-            ctx
-        );
-    }
-    return XmlResult<char>::success(*str);
-}
-
-// ==================== parseSingleValue Specializations (for vector parsing) ====================
-
-template<>
-[[nodiscard]] inline XmlResult<int> SafeXmlParser::parseSingleValue<int>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    int value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
     
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to int",
-            ctx
-        );
-    }
-    return XmlResult<int>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long> SafeXmlParser::parseSingleValue<long>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    long value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to long",
-            ctx
-        );
-    }
-    return XmlResult<long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long long> SafeXmlParser::parseSingleValue<long long>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    long long value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to long long",
-            ctx
-        );
-    }
-    return XmlResult<long long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned int> SafeXmlParser::parseSingleValue<unsigned int>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    unsigned int value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<unsigned int>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to unsigned int",
-            ctx
-        );
-    }
-    return XmlResult<unsigned int>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned long> SafeXmlParser::parseSingleValue<unsigned long>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    unsigned long value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<unsigned long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to unsigned long",
-            ctx
-        );
-    }
-    return XmlResult<unsigned long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<unsigned long long> SafeXmlParser::parseSingleValue<unsigned long long>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    unsigned long long value{};
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    
-    if (ec != std::errc{} || ptr != sv.data() + sv.size()) {
-        return XmlResult<unsigned long long>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to unsigned long long",
-            ctx
-        );
-    }
-    return XmlResult<unsigned long long>::success(value);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<float> SafeXmlParser::parseSingleValue<float>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    // std::from_chars for float is not guaranteed in all C++17 implementations
-    // Use std::stof with a temporary string
-    try {
-        std::string temp(sv);
-        std::size_t pos{};
-        float value = std::stof(temp, &pos);
+    /**
+     * @brief Create and return root element builder
+     * @param name Root element name
+     * @return Builder for the root element
+     */
+    XmlElementBuilder createRoot(std::string_view name) {
+        char* allocName = doc_.allocate_string(name.data(), name.size() + 1);
+        auto* root = doc_.allocate_node(rapidxml::node_element, allocName);
+        doc_.append_node(root);
         
-        if (pos != temp.size()) {
-            return XmlResult<float>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + temp + "' to float",
-                ctx
-            );
-        }
-        
-        return XmlResult<float>::success(value);
-    } catch (const std::exception&) {
-        return XmlResult<float>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to float",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<double> SafeXmlParser::parseSingleValue<double>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    try {
-        std::string temp(sv);
-        std::size_t pos{};
-        double value = std::stod(temp, &pos);
-        
-        if (pos != temp.size()) {
-            return XmlResult<double>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + temp + "' to double",
-                ctx
-            );
-        }
-        
-        return XmlResult<double>::success(value);
-    } catch (const std::exception&) {
-        return XmlResult<double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to double",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<long double> SafeXmlParser::parseSingleValue<long double>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    try {
-        std::string temp(sv);
-        std::size_t pos{};
-        long double value = std::stold(temp, &pos);
-        
-        if (pos != temp.size()) {
-            return XmlResult<long double>::error(
-                XmlErrorCode::TypeConversionError,
-                "Cannot convert '" + temp + "' to long double",
-                ctx
-            );
-        }
-        
-        return XmlResult<long double>::success(value);
-    } catch (const std::exception&) {
-        return XmlResult<long double>::error(
-            XmlErrorCode::TypeConversionError,
-            "Cannot convert '" + std::string(sv) + "' to long double",
-            ctx
-        );
-    }
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::string> SafeXmlParser::parseSingleValue<std::string>(
-    std::string_view sv, 
-    [[maybe_unused]] const std::string& ctx) {
-    return XmlResult<std::string>::success(std::string(sv));
-}
-
-template<>
-[[nodiscard]] inline XmlResult<bool> SafeXmlParser::parseSingleValue<bool>(
-    std::string_view sv, 
-    const std::string& ctx) {
-    std::string s(sv);
-    std::transform(s.begin(), s.end(), s.begin(),
-        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-
-    if (s == "true" || s == "1" || s == "yes" || s == "on") {
-        return XmlResult<bool>::success(true);
-    }
-    if (s == "false" || s == "0" || s == "no" || s == "off") {
-        return XmlResult<bool>::success(false);
-    }
-
-    return XmlResult<bool>::error(
-        XmlErrorCode::TypeConversionError,
-        "Cannot convert '" + std::string(sv) + "' to bool",
-        ctx
-    );
-}
-
-// ==================== Generic Vector Parser ====================
-
-template<typename T>
-struct VectorParser {
-    [[nodiscard]] static XmlResult<std::vector<T>> parse(
-        const char* str, 
-        const std::string& ctx) {
-        if (!str) {
-            return XmlResult<std::vector<T>>::error(
-                XmlErrorCode::TypeConversionError,
-                "Null string cannot be converted to vector",
-                ctx
-            );
-        }
-
-        // Empty string = empty vector (valid)
-        if (*str == '\0') {
-            return XmlResult<std::vector<T>>::success(std::vector<T>{});
-        }
-
-        std::string_view sv(str);
-        auto parts = SafeXmlParser::split(sv, SafeXmlParser::vectorDelimiter);
-        
-        std::vector<T> values;
-        values.reserve(parts.size());
-        
-        XmlError aggregateError{
-            XmlErrorCode::PartialFailure, 
-            "Some vector elements failed to parse"
-        };
-        bool hasErrors = false;
-
-        for (std::size_t i = 0; i < parts.size(); ++i) {
-            auto result = SafeXmlParser::parseSingleValue<T>(
-                parts[i], 
-                ctx + "[" + std::to_string(i) + "]"
-            );
-            
-            if (result.isSuccess()) {
-                values.push_back(std::move(result).value());
-            } else {
-                hasErrors = true;
-                aggregateError.addNestedError(std::move(result).error());
-            }
-        }
-
-        if (values.empty() && hasErrors) {
-            return XmlResult<std::vector<T>>::error(std::move(aggregateError));
-        }
-
-        return XmlResult<std::vector<T>>::success(std::move(values));
+        return XmlElementBuilder(doc_, root);
     }
     
-    [[nodiscard]] static XmlResult<std::vector<T>> parseStrict(
-        const char* str, 
-        const std::string& ctx) {
-        if (!str) {
-            return XmlResult<std::vector<T>>::error(
-                XmlErrorCode::TypeConversionError,
-                "Null string cannot be converted to vector",
-                ctx
-            );
-        }
-
-        if (*str == '\0') {
-            return XmlResult<std::vector<T>>::success(std::vector<T>{});
-        }
-
-        std::string_view sv(str);
-        auto parts = SafeXmlParser::split(sv, SafeXmlParser::vectorDelimiter);
+    /**
+     * @brief Create root element with initial attributes
+     * @param name Root element name
+     * @param attributes Initializer list of attribute name-value pairs
+     * @return Builder for the root element
+     */
+    XmlElementBuilder createRoot(
+        std::string_view name,
+        std::initializer_list<std::pair<std::string_view, std::string_view>> attributes) {
         
-        std::vector<T> values;
-        values.reserve(parts.size());
-
-        for (std::size_t i = 0; i < parts.size(); ++i) {
-            auto result = SafeXmlParser::parseSingleValue<T>(
-                parts[i], 
-                ctx + "[" + std::to_string(i) + "]"
-            );
-            
-            if (result.isError()) {
-                return XmlResult<std::vector<T>>::error(std::move(result).error());
-            }
-            values.push_back(std::move(result).value());
+        auto builder = createRoot(name);
+        builder.addAttributes(attributes);
+        return builder;
+    }
+    
+    /**
+     * @brief Get existing root element
+     * @return Optional builder for root, empty if no root
+     */
+    [[nodiscard]] std::optional<XmlElementBuilder> root() {
+        auto rootOpt = getRootNode();
+        if (rootOpt) {
+            return XmlElementBuilder(doc_, *rootOpt);
         }
-
-        return XmlResult<std::vector<T>>::success(std::move(values));
+        return std::nullopt;
     }
-};
-
-// ==================== Vector Type Specializations ====================
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<int>> 
-SafeXmlParser::parseValue<std::vector<int>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<int>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<long>> 
-SafeXmlParser::parseValue<std::vector<long>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<long>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<long long>> 
-SafeXmlParser::parseValue<std::vector<long long>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<long long>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<unsigned int>> 
-SafeXmlParser::parseValue<std::vector<unsigned int>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<unsigned int>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<unsigned long>> 
-SafeXmlParser::parseValue<std::vector<unsigned long>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<unsigned long>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<unsigned long long>> 
-SafeXmlParser::parseValue<std::vector<unsigned long long>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<unsigned long long>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<float>> 
-SafeXmlParser::parseValue<std::vector<float>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<float>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<double>> 
-SafeXmlParser::parseValue<std::vector<double>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<double>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<long double>> 
-SafeXmlParser::parseValue<std::vector<long double>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<long double>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<std::string>> 
-SafeXmlParser::parseValue<std::vector<std::string>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<std::string>::parse(str, ctx);
-}
-
-template<>
-[[nodiscard]] inline XmlResult<std::vector<bool>> 
-SafeXmlParser::parseValue<std::vector<bool>>(
-    const char* str, 
-    const std::string& ctx) {
-    return VectorParser<bool>::parse(str, ctx);
-}
-
-// ==================== Convenience Functions ====================
-
-template<typename T>
-[[nodiscard]] inline XmlResult<std::vector<T>> parseVectorWithDelimiter(
-    const char* str, 
-    char delimiter,
-    const std::string& ctx = "") {
     
-    // Save and restore delimiter (RAII-style would be better for thread safety)
-    const char oldDelimiter = SafeXmlParser::getVectorDelimiter();
-    SafeXmlParser::setVectorDelimiter(delimiter);
-    
-    auto result = SafeXmlParser::parseValue<std::vector<T>>(str, ctx);
-    
-    SafeXmlParser::setVectorDelimiter(oldDelimiter);
-    return result;
-}
-
-template<typename T>
-[[nodiscard]] inline XmlResult<std::vector<T>> parseVectorStrict(
-    const char* str,
-    const std::string& ctx = "") {
-    return VectorParser<T>::parseStrict(str, ctx);
-}
-
-// Thread-safe version with explicit delimiter
-template<typename T>
-[[nodiscard]] inline XmlResult<std::vector<T>> parseVector(
-    const char* str,
-    char delimiter,
-    const std::string& ctx = "") {
-    
-    if (!str) {
-        return XmlResult<std::vector<T>>::error(
-            XmlErrorCode::TypeConversionError,
-            "Null string cannot be converted to vector",
-            ctx
-        );
+    /**
+     * @brief Check if document has a root element
+     * @return true if root element exists
+     */
+    [[nodiscard]] bool hasRoot() const noexcept {
+        return getRootNodeConst() != nullptr;
     }
-
-    if (*str == '\0') {
-        return XmlResult<std::vector<T>>::success(std::vector<T>{});
-    }
-
-    std::string_view sv(str);
-    auto parts = SafeXmlParser::split(sv, delimiter);
     
-    std::vector<T> values;
-    values.reserve(parts.size());
-
-    for (std::size_t i = 0; i < parts.size(); ++i) {
-        auto result = SafeXmlParser::parseSingleValue<T>(
-            parts[i], 
-            ctx + "[" + std::to_string(i) + "]"
-        );
-        
+    // ==================== File Operations ====================
+    
+    /**
+     * @brief Load and parse XML from file
+     * @param filePath Path to XML file
+     * @throws XmlException on file or parse error
+     */
+    void loadFile(const std::filesystem::path& filePath) {
+        auto result = tryLoadFile(filePath);
         if (result.isError()) {
-            return XmlResult<std::vector<T>>::error(std::move(result).error());
+            throw XmlException(result.error().message, result.error().context);
         }
-        values.push_back(std::move(result).value());
+    }
+    
+    /**
+     * @brief Try to load XML from file (returns XmlResult)
+     * @param filePath Path to XML file
+     * @return XmlResult indicating success or error
+     */
+    [[nodiscard]] XmlResult<void> tryLoadFile(const std::filesystem::path& filePath) {
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
+            return XmlResult<void>::error(
+                XmlErrorCode::FileNotFound,
+                "Cannot open file",
+                filePath.string()
+            );
+        }
+        
+        auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        
+        sourceBuffer_.resize(static_cast<size_t>(size) + 1);
+        if (!file.read(sourceBuffer_.data(), size)) {
+            return XmlResult<void>::error(
+                XmlErrorCode::ParseError,
+                "Failed to read file",
+                filePath.string()
+            );
+        }
+        sourceBuffer_[static_cast<size_t>(size)] = '\0';
+        
+        return SafeXmlParser::tryParseString(doc_, sourceBuffer_.data());
+    }
+    
+    /**
+     * @brief Parse XML from string
+     * @param xml XML content
+     * @throws XmlParseException on parse error
+     */
+    void parseString(std::string_view xml) {
+        sourceBuffer_.assign(xml.begin(), xml.end());
+        sourceBuffer_.push_back('\0');
+        SafeXmlParser::parseString(doc_, sourceBuffer_.data());
+    }
+    
+    /**
+     * @brief Try to parse XML from string (returns XmlResult)
+     * @param xml XML content
+     * @return XmlResult indicating success or error
+     */
+    [[nodiscard]] XmlResult<void> tryParseString(std::string_view xml) {
+        sourceBuffer_.assign(xml.begin(), xml.end());
+        sourceBuffer_.push_back('\0');
+        return SafeXmlParser::tryParseString(doc_, sourceBuffer_.data());
+    }
+    
+    /**
+     * @brief Save document to file
+     * @param filePath Path to output file
+     * @throws XmlException on write error
+     */
+    void saveToFile(const std::filesystem::path& filePath) const {
+        auto result = trySaveToFile(filePath);
+        if (result.isError()) {
+            throw XmlException(result.error().message, result.error().context);
+        }
+    }
+    
+    /**
+     * @brief Try to save document to file (returns XmlResult)
+     * @param filePath Path to output file
+     * @return XmlResult indicating success or error
+     */
+    [[nodiscard]] XmlResult<void> trySaveToFile(
+        const std::filesystem::path& filePath) const {
+        
+        try {
+            if (filePath.has_parent_path()) {
+                std::filesystem::create_directories(filePath.parent_path());
+            }
+        } catch (const std::filesystem::filesystem_error& e) {
+            return XmlResult<void>::error(
+                XmlErrorCode::FileNotFound,
+                std::string("Failed to create directory: ") + e.what(),
+                filePath.string()
+            );
+        }
+        
+        std::ofstream file(filePath, std::ios::out | std::ios::trunc);
+        if (!file.is_open()) {
+            return XmlResult<void>::error(
+                XmlErrorCode::FileNotFound,
+                "Failed to create file",
+                filePath.string()
+            );
+        }
+        
+        // Use XmlPrinter
+        auto result = XmlPrinter::tryPrintElement(&doc_, file);
+        if (result.isError()) {
+            return result;
+        }
+        
+        if (file.fail()) {
+            return XmlResult<void>::error(
+                XmlErrorCode::ParseError,
+                "Failed to write file",
+                filePath.string()
+            );
+        }
+        
+        file.close();
+        return XmlResult<void>::success();
+    }
+    
+    /**
+     * @brief Convert document to string (formatted)
+     * @return XML string with indentation
+     */
+    [[nodiscard]] std::string toString() const {
+        return XmlPrinter::toString(&doc_, true);
+    }
+    
+    /**
+     * @brief Convert document to compact string (no formatting)
+     * @return XML string without extra whitespace
+     */
+    [[nodiscard]] std::string toCompactString() const {
+        return XmlPrinter::toString(&doc_, false);
+    }
+    
+    /**
+     * @brief Get reference to the underlying document
+     * @return Reference to the XML document
+     */
+    [[nodiscard]] XmlDocument& document() noexcept { return doc_; }
+    [[nodiscard]] const XmlDocument& document() const noexcept { return doc_; }
+
+private:
+    [[nodiscard]] std::optional<XmlNode*> getRootNode() noexcept {
+        auto* root = doc_.first_node();
+        
+        while (root && (root->type() == rapidxml::node_declaration ||
+                        root->type() == rapidxml::node_doctype ||
+                        root->type() == rapidxml::node_comment)) {
+            root = root->next_sibling();
+        }
+        
+        if (root && root->type() == rapidxml::node_element) {
+            return root;
+        }
+        return std::nullopt;
+    }
+    
+    [[nodiscard]] XmlNode* getRootNodeConst() const noexcept {
+        auto* root = doc_.first_node();
+        
+        while (root && (root->type() == rapidxml::node_declaration ||
+                        root->type() == rapidxml::node_doctype ||
+                        root->type() == rapidxml::node_comment)) {
+            root = root->next_sibling();
+        }
+        
+        if (root && root->type() == rapidxml::node_element) {
+            return root;
+        }
+        return nullptr;
     }
 
-    return XmlResult<std::vector<T>>::success(std::move(values));
+    mutable XmlDocument doc_;
+    std::vector<char> sourceBuffer_;
+};
+
+// ==================== Convenience Factory Functions ====================
+
+/**
+ * @brief Create a new XML document with declaration and root element
+ * @param rootName Root element name
+ * @param version XML version (default "1.0")
+ * @param encoding Character encoding (default "UTF-8")
+ * @return XmlDomBuilder instance
+ */
+[[nodiscard]] inline XmlDomBuilder createXmlDocument(
+    std::string_view rootName,
+    std::string_view version = "1.0",
+    std::string_view encoding = "UTF-8") {
+    
+    XmlDomBuilder builder;
+    builder.createDocument()
+           .addDeclaration(version, encoding)
+           .createRoot(rootName);
+    return builder;
+}
+
+/**
+ * @brief Load XML from file
+ * @param filePath Path to XML file
+ * @return XmlDomBuilder instance with loaded document
+ * @throws XmlException on error
+ */
+[[nodiscard]] inline XmlDomBuilder loadXmlFile(const std::filesystem::path& filePath) {
+    XmlDomBuilder builder;
+    builder.loadFile(filePath);
+    return builder;
+}
+
+/**
+ * @brief Try to load XML from file (returns XmlResult)
+ * @param filePath Path to XML file
+ * @param outBuilder Output builder (will be populated on success)
+ * @return XmlResult indicating success or error
+ */
+[[nodiscard]] inline XmlResult<void> tryLoadXmlFile(
+    const std::filesystem::path& filePath,
+    XmlDomBuilder& outBuilder) {
+    
+    return outBuilder.tryLoadFile(filePath);
+}
+
+/**
+ * @brief Parse XML from string
+ * @param xml XML content
+ * @return XmlDomBuilder instance with parsed document
+ * @throws XmlParseException on error
+ */
+[[nodiscard]] inline XmlDomBuilder parseXml(std::string_view xml) {
+    XmlDomBuilder builder;
+    builder.parseString(xml);
+    return builder;
+}
+
+/**
+ * @brief Try to parse XML from string (returns XmlResult)
+ * @param xml XML content
+ * @param outBuilder Output builder (will be populated on success)
+ * @return XmlResult indicating success or error
+ */
+[[nodiscard]] inline XmlResult<void> tryParseXml(
+    std::string_view xml,
+    XmlDomBuilder& outBuilder) {
+    
+    return outBuilder.tryParseString(xml);
 }
 
 } // namespace xml_framework
 
-#endif // SAFE_XML_PARSER_HPP
+#endif // XML_BUILDER_H

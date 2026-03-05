@@ -1,12 +1,7 @@
 ####################################################
 add_library(
   xmlBase SHARED
-  src/Dom.cxx
   src/IFile.cxx
-  src/XmlErrorHandler.cxx
-  src/XmlParser.cxx
-  src/EResolver.cxx
-  src/docMan/DocMan.cxx
 )
 target_include_directories(
   xmlBase PUBLIC

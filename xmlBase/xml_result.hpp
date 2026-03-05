@@ -4,6 +4,7 @@
 #include <variant>
 #include <optional>
 #include <string>
+#include <sstream>  // Added: Required for std::ostringstream in toString()
 
 namespace xml_framework {
 
@@ -61,12 +62,19 @@ public:
     static XmlResult error(XmlErrorCode code, const std::string& msg) {
         return XmlResult(XmlError{code, msg});
     }
+    
+    // Added: Three-argument error() for consistency with usage in other files
+    static XmlResult error(XmlErrorCode code, const std::string& msg, 
+                          const std::string& ctx) {
+        return XmlResult(XmlError{code, msg, ctx});
+    }
 
     bool isSuccess() const { return std::holds_alternative<T>(data_); }
     bool isError() const { return std::holds_alternative<XmlError>(data_); }
 
-    const T& value() const { return std::get<T>(data_); }
-    T& value() { return std::get<T>(data_); }
+    const T& value() const& { return std::get<T>(data_); }
+    T& value() & { return std::get<T>(data_); }
+    T&& value() && { return std::get<T>(std::move(data_)); }
     
     const XmlError& error() const { return std::get<XmlError>(data_); }
 
@@ -96,7 +104,19 @@ template<>
 class XmlResult<void> {
 public:
     static XmlResult success() { return XmlResult(true); }
+    
     static XmlResult error(XmlError err) { return XmlResult(std::move(err)); }
+    
+    // Added: Two-argument error() to match generic template
+    static XmlResult error(XmlErrorCode code, const std::string& msg) {
+        return XmlResult(XmlError{code, msg});
+    }
+    
+    // Added: Three-argument error() for consistency with usage in other files
+    static XmlResult error(XmlErrorCode code, const std::string& msg,
+                          const std::string& ctx) {
+        return XmlResult(XmlError{code, msg, ctx});
+    }
 
     bool isSuccess() const { return success_; }
     bool isError() const { return !success_; }
