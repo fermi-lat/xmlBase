@@ -100,7 +100,7 @@ namespace {
       // Use XmlPrinter to serialize
       XmlPrinter printer;
       auto result = printer.tryToString(node, true);
-      if (!result) {
+      if (!result.isSuccess()) {
          return false;
       }
       

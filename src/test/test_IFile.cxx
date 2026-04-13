@@ -16,7 +16,7 @@
 #include <string_view>
 
 // Forward declaration
-void lookFor(const xmlBase::IFile& ifile, std::string_view section, std::string_view item);
+void lookFor(xmlBase::IFile& ifile, std::string_view section, std::string_view item);
 
 int main() {
    facilities::commonUtilities::setupEnvironment();
@@ -60,7 +60,7 @@ int main() {
    return 0;
 }
 
-void lookFor(const xmlBase::IFile& ifile, std::string_view section, std::string_view item) {
+void lookFor(xmlBase::IFile& ifile, std::string_view section, std::string_view item) {
    // Convert string_view to const char* for IFile interface
    const std::string sectionStr(section);
    const std::string itemStr(item);
