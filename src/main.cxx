@@ -1,8 +1,8 @@
 /// Test program for xmlBase facility.  Parse Axml file and optionally
 /// write it out to a stream.
 
-#include "xmlbase/safe_xml_parser.hpp"
-#include "xml_printer.hpp"
+#include "xmlBase/safe_xml_parser.hpp"
+#include "xmlBase/xml_printer.hpp"
 #include "facilities/Util.h"
 #include "facilities/commonUtilities.h"
 
