@@ -9,7 +9,7 @@ target_include_directories(
   $<INSTALL_INTERFACE:>
 )
 
-target_link_libraries(xmlBase PUBLIC XercesC::XercesC facilities)
+target_link_libraries(xmlBase PUBLIC facilities)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
