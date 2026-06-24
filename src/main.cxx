@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 
-    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlbase"), "test.xml");
+    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
   }
   else {
     infile = std::string(argv[1]);
