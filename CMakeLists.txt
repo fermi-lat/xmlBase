@@ -1,12 +1,7 @@
 ####################################################
 add_library(
   xmlBase SHARED
-  src/Dom.cxx
   src/IFile.cxx
-  src/XmlErrorHandler.cxx
-  src/XmlParser.cxx
-  src/EResolver.cxx
-  src/docMan/DocMan.cxx
 )
 target_include_directories(
   xmlBase PUBLIC
@@ -14,7 +9,7 @@ target_include_directories(
   $<INSTALL_INTERFACE:>
 )
 
-target_link_libraries(xmlBase PUBLIC XercesC::XercesC facilities)
+target_link_libraries(xmlBase PUBLIC facilities)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 

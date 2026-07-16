@@ -1,206 +1,226 @@
-// Compare handling of elements in the physical file passed to parser
-// versus those coming from a separate file, included via entity reference
+/**
+ * @file entity_test.cpp
+ * @brief Compare handling of elements in the physical file passed to parser
+ * versus those coming from a separate file, included via entity reference.
+ * 
+ * Note: RapidXML does not support external entity references or entity
+ * expansion in the same way as Xerces-C. This test demonstrates basic
+ * XML parsing with RapidXML. For full entity reference support, a
+ * preprocessing step or different parser would be needed.
+ */
 
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/util/XMLUni.hpp>
-#include <xercesc/sax/ErrorHandler.hpp>
-#include <xercesc/sax/SAXParseException.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-
-#include <string>
-#include <iostream>
+#include "xmlBase/safe_xml_parser.hpp"
+#include "xmlBase/xml_printer.hpp"
 
 #include "facilities/commonUtilities.h"
 
-XERCES_CPP_NAMESPACE_USE
-class XmlErrorHandler : public ErrorHandler  {
-public:
-  XmlErrorHandler(std::ostream& errOut=std::cerr) : m_errOut(errOut)
-  {resetErrors();}
-  ~XmlErrorHandler() {}
-  void warning(const SAXParseException& exception);
-  void error(const SAXParseException& exception);
-  void fatalError(const SAXParseException& exception);
-  void resetErrors();
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <vector>
 
-  int getWarningCount() const {return m_nWarning;}
-  int getErrorCount() const {return m_nError;}
-  int getFatalCount() const {return m_nFatal;}
+namespace {
+   using namespace xml_framework;
 
-private: 
-  int m_nWarning, m_nError, m_nFatal;
-  std::ostream& m_errOut;
-};                  // end class definition
+   // Helper function to get attribute value from a node
+   [[nodiscard]] std::string getAttribute(rapidxml::xml_node<>* node, 
+                                          const char* attrName) {
+      if (!node) {
+         return "";
+      }
+      auto* attr = node->first_attribute(attrName);
+      if (attr && attr->value()) {
+         return std::string(attr->value());
+      }
+      return "";
+   }
 
-// forward declaration
-void Process(DOMDocument* doc, const char* eltName);
+   // Helper function to get text content from a node
+   [[nodiscard]] std::string getTextContent(rapidxml::xml_node<>* node) {
+      if (!node) {
+         return "";
+      }
+      
+      std::string content;
+      for (auto* child = node->first_node(); child; child = child->next_sibling()) {
+         if (child->type() == rapidxml::node_data || 
+             child->type() == rapidxml::node_cdata) {
+            if (child->value()) {
+               content += child->value();
+            }
+         }
+      }
+      return content;
+   }
 
+   // Helper to read file contents
+   [[nodiscard]] std::string readFileContents(const std::string& filename) {
+      std::ifstream file(filename);
+      if (!file) {
+         throw std::runtime_error("Cannot open file: " + filename);
+      }
+      std::ostringstream ss;
+      ss << file.rdbuf();
+      return ss.str();
+   }
 
-//  Start here
+   // Process elements with the given tag name
+   void processElements(rapidxml::xml_node<>* doc, std::string_view eltName) {
+      if (!doc) {
+         std::cerr << "invalid document" << std::endl;
+         return;
+      }
+
+      const std::string eltNameStr(eltName);
+      
+      // Find all elements with the given name
+      std::vector<rapidxml::xml_node<>*> elements;
+      
+      // Recursive lambda to find all matching elements
+      std::function<void(rapidxml::xml_node<>*)> findElements = 
+         [&](rapidxml::xml_node<>* node) {
+            if (!node) return;
+            
+            for (auto* child = node->first_node(); child; child = child->next_sibling()) {
+               if (child->type() == rapidxml::node_element) {
+                  if (child->name() && std::string(child->name()) == eltNameStr) {
+                     elements.push_back(child);
+                  }
+                  // Recurse into children
+                  findElements(child);
+               }
+            }
+         };
+      
+      findElements(doc);
+
+      std::cout << "Found " << elements.size() << " elements with tag '" 
+                << eltName << "'" << std::endl;
+
+      for (auto* elt : elements) {
+         std::string name = getAttribute(elt, "name");
+         std::string value = getAttribute(elt, "value");
+         std::string modified = getAttribute(elt, "modified");
+
+         std::cout << "  Element '" << eltName << "':" << std::endl;
+         
+         if (!name.empty()) {
+            std::cout << "    name attribute: " << name << std::endl;
+         }
+         if (!value.empty()) {
+            std::cout << "    value attribute: " << value << std::endl;
+         }
+         if (!modified.empty()) {
+            std::cout << "    modified attribute: " << modified << std::endl;
+         }
+
+         // Check for text content
+         std::string textContent = getTextContent(elt);
+         if (!textContent.empty()) {
+            // Trim whitespace
+            auto start = textContent.find_first_not_of(" \t\n\r");
+            auto end = textContent.find_last_not_of(" \t\n\r");
+            if (start != std::string::npos && end != std::string::npos) {
+               textContent = textContent.substr(start, end - start + 1);
+               if (!textContent.empty()) {
+                  std::cout << "    text content: " << textContent << std::endl;
+               }
+            }
+         }
+
+         // Check for child elements
+         int childCount = 0;
+         for (auto* child = elt->first_node(); child; child = child->next_sibling()) {
+            if (child->type() == rapidxml::node_element) {
+               ++childCount;
+            }
+         }
+         if (childCount > 0) {
+            std::cout << "    child elements: " << childCount << std::endl;
+         }
+      }
+      std::cout << std::endl;
+   }
+}
+
 int main(int argc, char* argv[]) {
-  facilities::commonUtilities::setupEnvironment();
-  std::string infile;
-  if (argc < 2) { 
-    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"),"simpleDoc.xml");
-  }
-  else {
-    infile = std::string(argv[1]);
-  }
-
-  try {
-    XMLPlatformUtils::Initialize();
-  }
-  catch(const XMLException& toCatch)
-  {  // may want to redirect in Gaudi environment
-    char*  charMsg = XMLString::transcode(toCatch.getMessage());
-    std::string msg = std::string(charMsg);
-    XMLString::release(&charMsg);
-    //        std::string msg(Dom::transToChar(toCatch.getMessage()));
-    std::cerr << "Error during Xerces-c Initialization.\n"
-              << "  Exception message:" << msg << std::endl;
-    return 0;
-  }
-
-  const char* inChars = infile.c_str();
-  XMLCh* xmlchPath = XMLString::transcode(inChars);
-  XercesDOMParser* parser = new XercesDOMParser();
-
-  XmlErrorHandler* errorHandler = new XmlErrorHandler();
-  parser->setErrorHandler(errorHandler);
-
-  // The following made no difference in the output
-  //  parser->useScanner(XMLUni::fgDGXMLScanner);
-  // According to documentation we shouldn't need this, but
-  // can't hurt
-  parser->setValidationScheme(AbstractDOMParser::Val_Auto);
-  
-
-  std::cout << "create entity reference flag has default (true) value" << 
-    std::endl;
-  parser->parse(xmlchPath);
-  DOMDocument* doc = parser->getDocument();
-  std::cout << "Document successfully parsed" << std::endl;
-  std::cout << "processing local elements.. " << std::endl;
-  Process(doc, "const");
-  std::cout << std::endl << "processing external elements.. " << std::endl;
-  Process(doc, "extConst");
-
-  parser->reset();
-  parser->setCreateEntityReferenceNodes(false);
-
-  std::cout << std::endl << std::endl \
-            << "create entity reference flag has value false" << std::endl;
-  parser->parse(xmlchPath);
-  DOMDocument* expandDoc = parser->getDocument();
-  std::cout << "Document successfully parsed" << std::endl;
-  std::cout << "processing local elements.. " << std::endl;
-  Process(expandDoc, "const");
-  std::cout << "processing external elements.. " << std::endl;
-  Process(expandDoc, "extConst");
-
-}
-
-void Process(DOMDocument* doc, const char* eltName) {
-  XMLCh* xmlchEltName = XMLString::transcode(eltName);
-  XMLCh* xmlchName = XMLString::transcode("name");
-  XMLCh* xmlchValue = XMLString::transcode("value");
-  XMLCh* xmlchModified = XMLString::transcode("modified");
-  if (!doc) {
-    std::cerr << "invalid document " << std::endl;
-    return;
-  }
-
-  // Find all elements with supplied tag name
-  DOMNodeList* constList = doc->getElementsByTagName(xmlchEltName);
-  unsigned int nElt = constList->getLength();
-  for (unsigned int iElt = 0; iElt < nElt; iElt++) {
-    try {  
-      bool mismatch = false;
-      DOMNode* item = constList->item(iElt);
-      DOMElement* itemElt = dynamic_cast<DOMElement *>(item);
-      DOMElement* byIdElt;
-      std::cout << std::endl << eltName << " #" << iElt 
-                << " Address as node:  " 
-                << item << " and as element: " << itemElt << std::endl;
-      const XMLCh* xmlchNamevalue = itemElt->getAttribute(xmlchName);
-      if (XMLString::stringLen(xmlchNamevalue) > 0 ) {
-        char* namevalue = XMLString::transcode(xmlchNamevalue);
-        std::cout << "element has name " << namevalue << std::endl;
-        byIdElt = doc->getElementById(xmlchNamevalue);
-        std::cout << "Address from getElementById: " << byIdElt << std::endl;
-        if (byIdElt != itemElt) {
-          mismatch = true;
-          std::cout << "**** Address mismatch " << std::endl << std::endl;
-        }
-        XMLString::release(&namevalue);
+   using namespace xml_framework;
+   
+   facilities::commonUtilities::setupEnvironment();
+   
+   // Determine input file
+   std::string infile = [&]() {
+      if (argc >= 2) {
+         return std::string(argv[1]);
       }
-      std::cout << "Modifying value attribute using DOM_Element address" << std::endl;
-      itemElt->setAttribute(xmlchValue, xmlchModified);
-      if (mismatch) {
-        std::cout << "Modifying value attribute using looked-up address" 
-                  << std::endl;
-        byIdElt->setAttribute(xmlchValue, xmlchModified);
+      return facilities::commonUtilities::joinPath(
+         facilities::commonUtilities::getXmlPath("xmlBase"), "simpleDoc.xml");
+   }();
 
+   std::cout << "Parsing file: " << infile << std::endl;
+   std::cout << std::string(60, '=') << std::endl << std::endl;
+
+   auto parser = std::make_unique<SafeXmlParser>();
+
+   try {
+      // Load and parse the file
+      auto loadResult = parser->loadFile(infile);
+      if (!loadResult.isSuccess()) {
+         std::cerr << "Error loading file: " << infile << std::endl;
+         return 1;
       }
-    }
-    catch (DOMException ex) {
-      int code = ex.code;
-      std::cout << "***** Processing failed for element #" << iElt 
-                << " with DOMException, code = " 
-                << code << std::endl << std::endl;
-    }
-  }
-  
-}
 
+      auto buffer = loadResult.value();
+      rapidxml::xml_document<> doc;
+      parser->parseString(doc, buffer.data());
 
+      auto* root = doc.first_node();
+      if (!root) {
+         std::cerr << "No root element found in document" << std::endl;
+         return 1;
+      }
 
+      std::cout << "Document successfully parsed" << std::endl;
+      std::cout << "Root element: " << (root->name() ? root->name() : "(unnamed)") 
+                << std::endl << std::endl;
 
-// XmlErrorHandler implementation
-void XmlErrorHandler::warning(const SAXParseException&) {
-  m_nWarning++;
-}
+      // Process local elements
+      std::cout << "Processing local elements ('const')..." << std::endl;
+      processElements(root, "const");
 
-void XmlErrorHandler::error(const SAXParseException& toCatch) {
-  char* charSyst = XMLString::transcode(toCatch.getSystemId());
-  std::string systemId(charSyst);
-  XMLString::release(&charSyst);
-  char* charMsg = XMLString::transcode(toCatch.getMessage());
-  std::string msg(charMsg);
-  XMLString::release(&charMsg);
-  m_nError++;
-  std::cerr << "Error at file \"" << systemId
-            << "\", line " << toCatch.getLineNumber()
-            << ", column " << toCatch.getColumnNumber()
-            << "\n   Message: " << msg << "\n\n";
-}
+      // Process external elements (if any)
+      std::cout << "Processing external elements ('extConst')..." << std::endl;
+      std::cout << "Note: RapidXML does not automatically expand external entity references."
+                << std::endl;
+      std::cout << "External entities would need to be preprocessed before parsing."
+                << std::endl << std::endl;
+      processElements(root, "extConst");
 
-void XmlErrorHandler::fatalError(const SAXParseException& toCatch) {
+      std::cout << std::string(60, '=') << std::endl;
+      std::cout << std::endl;
+      std::cout << "RapidXML Entity Reference Behavior:" << std::endl;
+      std::cout << "-----------------------------------" << std::endl;
+      std::cout << "Unlike Xerces-C, RapidXML does not support:" << std::endl;
+      std::cout << "  - External entity reference expansion" << std::endl;
+      std::cout << "  - DTD processing and validation" << std::endl;
+      std::cout << "  - The setCreateEntityReferenceNodes option" << std::endl;
+      std::cout << std::endl;
+      std::cout << "For external entity support, preprocess the XML document" << std::endl;
+      std::cout << "or use a different parser for the initial expansion." << std::endl;
 
-  // getMessage returns type XMLCh*
-  char* charMsg = XMLString::transcode(toCatch.getMessage());
-  std::string msg(charMsg);
-  XMLString::release(&charMsg);
-  m_nFatal++;
-  if (!(toCatch.getSystemId()) ) {
-    std::cerr << "Fatal XML parse error: no such file "
-              << "\n Message: " << msg << "\n\n";
-  }
-  else {
-    char* charSyst = XMLString::transcode(toCatch.getSystemId());
-    std::string systemId(charSyst);
-    XMLString::release(&charSyst);
-    std::cerr << "Fatal error at file \"" 
-              << systemId
-              << "\", line " << toCatch.getLineNumber()
-              << ", column " << toCatch.getColumnNumber()
-              << "\n   Message: " << msg << "\n\n";
-  }
-}
-void XmlErrorHandler::resetErrors() {
-  m_nWarning = m_nError = m_nFatal = 0;
+   } catch (const rapidxml::parse_error& e) {
+      std::cerr << "XML parse error: " << e.what() << std::endl;
+      return 1;
+   } catch (const XmlException& e) {
+      std::cerr << "XML exception: " << e.what() << std::endl;
+      return 1;
+   } catch (const std::exception& e) {
+      std::cerr << "Error: " << e.what() << std::endl;
+      return 1;
+   }
+
+   return 0;
 }

@@ -1,8 +1,8 @@
 /// Test program for xmlBase facility.  Parse Axml file and optionally
 /// write it out to a stream.
 
-#include "xmlBase/safe_xml_parser.hpp"
-#include "xmlBase/xml_printer.hpp"
+#include "xmlbase/safe_xml_parser.hpp"
+#include "xml_printer.hpp"
 #include "facilities/Util.h"
 #include "facilities/commonUtilities.h"
 
@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 
-    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlBase"), "test.xml");
+    infile=facilities::commonUtilities::joinPath(facilities::commonUtilities::getXmlPath("xmlbase"), "test.xml");
   }
   else {
     infile = std::string(argv[1]);

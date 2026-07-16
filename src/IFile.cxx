@@ -1,471 +1,477 @@
 // $Header: /nfs/slac/g/glast/ground/cvs/xmlBase/src/IFile.cxx,v 1.1.1.1 2004/12/29 22:36:26 jrb Exp $
 
-
 #include "xmlBase/IFile.h"
-#include "xmlBase/XmlParser.h"
-#include "xmlBase/Dom.h"
-#include "facilities/Util.h"                // for expandEnvVar
-#include <xercesc/dom/DOMDocument.hpp>
+#include "facilities/Util.h"  // for expandEnvVar
 
 #include <sstream>
 #include <vector>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <cctype>
+#include <cstdlib>
+#include <fstream>
 
-#define FATAL_MACRO(output) std::cerr << output;throw(IFileException(output))
-
-// globals
+#define FATAL_MACRO(output) do { std::cerr << output << std::endl; throw(IFileException(output)); } while(0)
 
 namespace xmlBase {
-
-XERCES_CPP_NAMESPACE_USE
 
 #define LEADING  1
 #define ALL      2
 #define TRAILING 4
 
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  void IFile::printOn(std::ostream& out) {
+    for (auto section_map = begin(); section_map != end(); ++section_map) {
+      IFile_Section& section = *section_map->second;
+      out << "\n[" << section_map->first << "]\n";
+      
+      for (auto item_map = section.begin(); item_map != section.end(); ++item_map) {
+        IFile_Item& item = *item_map->second;
+        out << item_map->first << " = " << item.mystring() << "\n";
+      }
+    }
+  }
+  
+  void IFile::print() {
+    printOn(std::cout);
+    std::cout.flush();
+  }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::printOn (std::ostream& out) {
-    for (iterator section_map=begin(); section_map!=end(); ++section_map) {
-      IFile_Section& section = *(*section_map).second;
-      out << "\n[" <<  (*section_map).first << "]\n";
-      
-      for( IFile_Section::iterator item_map = section.begin();
-           item_map != section.end(); ++item_map){
-        IFile_Item& item = *(*item_map).second;
-        out << (*item_map).first << " = "  << (item.mystring()) << "\n";
-      }
+  IFile_Section::~IFile_Section() {
+    for (auto it = begin(); it != end(); ++it) {
+      delete it->second;
     }
+    clear();
   }
-  
-  void IFile::print(){printOn(std::cout); std::cout.flush();}
 
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::stricmp (const char *str1, const char *str2)
-    {
-      while ( *str1  &&  *str2  &&  toupper(*str1)==toupper(*str2) )
-      {
-        str1++;
-        str2++;
-      }
-      
-      return (toupper(*str1) - toupper(*str2));
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::~IFile() {
+    for (auto it = begin(); it != end(); ++it) {
+      delete it->second;
     }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::stripBlanks (char *str1, const char *str2, int flags)
-    {
-      if (flags & ALL)
-      {
-        while ( *str2 )
-        {
-          if (*str2==' '  ||  *str2=='\t')
-            str2++;
-          else
-            *str1++ = *str2++;
-        }
-        *str1=0;
-      }
-      else
-      {
-        if (flags & LEADING)
-          while ( *str2  &&  (*str2==' '  ||  *str2=='\t'))
-            str2++;
-        
-        strcpy (str1, str2);
-        
-        if (flags & TRAILING)
-        {
-          str1 += strlen (str1);
-          
-          do str1--; while (*str1==' '  ||  *str1=='\t');
-          *++str1 = 0;
-        }
-      }
-    }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::~IFile ()
-    {
-      iterator it = begin();
-      while (it != end())
-        delete (*it++).second;
-      
-    }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile_Section::~IFile_Section()
-    {
-      iterator it = begin();
-      while (it != end())
-        delete (*it++).second;
-    }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::IFile (const DOMDocument* doc)  
-    {
-      // check that argument is non-null
-      if (doc == 0) {
-        //  FATAL_MACRO("Attempt to construct IFile from null DOMDocument");
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
-                  << std::endl;
-        std::cerr.flush();
-        exit(1);
-      }
-      // If so, call service to do the actual work
-      domToIni(doc);
-    }
-  
-  IFile::IFile (const DOMElement* doc)  
-    {
-      // check that argument is non-null
-      if (doc == 0) {
-        //        FATAL_MACRO("Attempt to construct IFile from null DOMElement");
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
-                  << std::endl;
-        std::cerr.flush();
-        exit(1);
-      }
-      // If so, call service to do the actual work
-      domToIni(doc);
-    }
-  
+    clear();
+  }
 
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::IFile (const char *filename) 
-    {   
-      using facilities::Util;
-
-      XmlParser parser;
-      
-      parser.doSchema(true);
-
-      std::string filenameStr = filename;
-      Util::expandEnvVar(&filenameStr);
-
-      // What if this fails (e.g., file doesn't exist or is not 
-      // well-formed)?? How to report it?
-      DOMDocument* doc = parser.parse(filenameStr.c_str());
-      
-      // Check it's a good doc.  
-      if (doc == 0) {
-        std::cerr << "Attempt to construct IFile from null DOMDocument" 
-                  << std::endl;
-        std::cerr.flush();
-        exit(1);
-        //   FATAL_MACRO("Attempt to construct IFile from null DomDocument");
-      }
-      
-      // If so, initialize IFile from it
-      domToIni(doc);
-    }
-
-  // Work of constructor minus parsing
-  void IFile::domToIni(const DOMDocument* doc) {
-    DOMElement*  root = doc->getDocumentElement();
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::IFile(const char* filename) : curSection_(nullptr) {
+    // Expand environment variables in filename
+    std::string fname(filename);
+    facilities::Util::expandEnvVar(&fname);
     
-    // Now invoke element version to do the work
-    domToIni(root);
-  }        
-
-  void IFile::domToIni(const DOMElement* root) {
-    // Done this way, any child elements which are *not* sections
-    // will simply be ignored.  Another strategy would be to look 
-    // at all children and complain if any are not sections
-    std::vector<DOMElement*> sections;
-    Dom::getChildrenByTagName(root, "section", sections);
-    unsigned int nChild = sections.size();
-
-    for (unsigned int iChild = 0; iChild < nChild; iChild++) {
-      addSection(sections[iChild]);
-    }
-  }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::addSection(const DOMElement* section)  {
-    std::string tagName = Dom::getTagName(section);
-
-    if (tagName.compare("section") ) {
-      std::string errorString = 
-        "Expecting tagName==section, found " +  tagName;
+    // Load file into buffer
+    std::ifstream file(fname, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+      std::string errorString = "IFile cannot open file: " + fname;
       FATAL_MACRO(errorString);
     }
     
-    // start a section
-    std::string sectName = Dom::getAttribute(section, "name");
-    IFile_Section* curSection = new IFile_Section(sectName);
-    (*this)[curSection->title()]=curSection;
+    auto size = file.tellg();
+    file.seekg(0, std::ios::beg);
     
-    std::vector<DOMElement*> children;
+    sourceBuffer_.resize(static_cast<size_t>(size) + 1);
+    if (!file.read(sourceBuffer_.data(), size)) {
+      std::string errorString = "IFile cannot read file: " + fname;
+      FATAL_MACRO(errorString);
+    }
+    sourceBuffer_[static_cast<size_t>(size)] = '\0';
+    file.close();
+    
+    // Parse the XML
+    rapidxml::xml_document<> doc;
+    try {
+      doc.parse<rapidxml::parse_default>(sourceBuffer_.data());
+    } catch (const rapidxml::parse_error& e) {
+      std::string errorString = std::string("XML Parse Error in file ") + fname + ": " + e.what();
+      FATAL_MACRO(errorString);
+    }
+    
+    domToIni(&doc);
+  }
 
-    Dom::getChildrenByTagName(section, "*", children);
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::IFile(const rapidxml::xml_document<>* instrument) : curSection_(nullptr) {
+    domToIni(instrument);
+  }
 
-    unsigned int nChild = children.size();
-    for (unsigned int iChild = 0; iChild < nChild; iChild++) {
-      DOMElement* child = children[iChild];
-      std::string tagName = Dom::getTagName(child);
-      if (!(tagName.compare("section")) ) {
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::IFile(const rapidxml::xml_node<>* instrument) : curSection_(nullptr) {
+    domToIni(instrument);
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  void IFile::domToIni(const rapidxml::xml_document<>* doc) {
+    // Find the root element
+    rapidxml::xml_node<>* root = doc->first_node();
+    
+    // Skip declaration and other non-element nodes
+    while (root && root->type() != rapidxml::node_element) {
+      root = root->next_sibling();
+    }
+    
+    if (!root) {
+      FATAL_MACRO("IFile: Document has no root element");
+    }
+    
+    domToIni(root);
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  void IFile::domToIni(const rapidxml::xml_node<>* doc) {
+    // Get all child nodes using SafeXmlParser
+    auto children = SafeXmlParser::getChildren(
+      const_cast<rapidxml::xml_node<>*>(doc), nullptr);
+    
+    for (auto* child : children) {
+      if (child->type() != rapidxml::node_element) continue;
+      
+      std::string tagName = child->name() ? child->name() : "";
+      
+      if (tagName == "section") {
         addSection(child);
       }
-      else if (!(tagName.compare("item")) ) {
-        std::string  itemName = Dom::getAttribute(child, "name");
-        std::string itemValue = Dom::getAttribute(child, "value");
+      else {
+        std::string errorString = "unexpected tag in initialization: " + tagName;
+        FATAL_MACRO(errorString);
+      }
+    }
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  void IFile::addSection(const rapidxml::xml_node<>* elt) {
+    // Get section name attribute
+    auto nameResult = SafeXmlParser::getAttributeValue<std::string>(elt, "name");
+    if (nameResult.isError()) {
+      FATAL_MACRO("IFile: section element missing 'name' attribute");
+    }
+    std::string sectionName = nameResult.value();
+    
+    // Create new section
+    curSection_ = new IFile_Section(sectionName);
+    (*this)[sectionName] = curSection_;
+    
+    // Process children (items and nested sections)
+    auto children = SafeXmlParser::getChildren(
+      const_cast<rapidxml::xml_node<>*>(elt), nullptr);
+    
+    for (auto* child : children) {
+      if (child->type() != rapidxml::node_element) continue;
+      
+      std::string tagName = child->name() ? child->name() : "";
+      
+      if (tagName == "section") {
+        addSection(child);
+      }
+      else if (tagName == "item") {
+        auto itemNameResult = SafeXmlParser::getAttributeValue<std::string>(child, "name");
+        auto itemValueResult = SafeXmlParser::getAttributeValue<std::string>(child, "value");
+        
+        if (itemNameResult.isError()) {
+          FATAL_MACRO("IFile: item element missing 'name' attribute");
+        }
+        if (itemValueResult.isError()) {
+          FATAL_MACRO("IFile: item element missing 'value' attribute");
+        }
+        
+        std::string itemName = itemNameResult.value();
+        std::string itemValue = itemValueResult.value();
         
         // Make the new item
-        IFile_Item* newItem = 
-          new IFile_Item(itemName, itemValue);
+        IFile_Item* newItem = new IFile_Item(itemName, itemValue);
+        
         // Add it to the section map
-        (*curSection)[newItem->title()]= newItem;
+        (*curSection_)[newItem->title()] = newItem;
       }
       else {
-        std::string errorString = "unexpected tag in initialization:" 
-          + tagName;
+        std::string errorString = "unexpected tag in initialization: " + tagName;
         FATAL_MACRO(errorString);
-      }      // end if..else
-    }     // end for
-    
+      }
+    }
   }
-  
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  bool IFile::contains (const char *section, const char *item)
-    {
-      return (IFile::_getstring (section, item, 0) != 0);
+  bool IFile::contains(const char* section, const char* item) {
+    return (_getstring(section, item, 0) != nullptr);
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  const char* IFile::_getstring(const char* sectionname, const char* itemname, 
+                                int failFlag) {
+    char hitem[1000], hsection[1000];
+    IFile_Item* item = nullptr;
+    IFile_Section* section = nullptr;
+    
+    stripBlanks(hitem, itemname, ALL);
+    stripBlanks(hsection, sectionname, ALL);
+    
+    auto entry = find(std::string(hsection));
+    
+    if (entry != end()) {
+      section = entry->second;
+      
+      auto it = section->find(std::string(hitem));
+      item = (it != section->end()) ? it->second : nullptr;
     }
-  
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char *IFile::_getstring(const char *sectionname, const char *itemname, 
-                                int failFlag)
-    {
-      char     hitem[1000], hsection[1000];
-      IFile_Item    *item = 0;
-      IFile_Section *section =0;
-      
-      stripBlanks (hitem,    itemname,    ALL);
-      stripBlanks (hsection, sectionname, ALL);
-      
-      const_iterator entry = find(std::string(hsection));
-      
-      if (entry  != end() )      {
-        section = (*entry).second;
-        
-        IFile_Section::const_iterator it = section->find(std::string(hitem));
-        item = (it != section->end() ) ?item = (*it).second :  0;
-        
-      }
-      
-      if (item != 0)   {
+    
+    if (item != nullptr) {
 #ifdef DEBUG
-        INFO ("getstring: [" << hsection << "]" << hitem << ": ->" << 
-              (item->string()) << "<-");
+      std::cout << "getstring: [" << hsection << "]" << hitem << ": ->" 
+                << item->mystring() << "<-" << std::endl;
 #endif
-        return item->mystring().c_str();
-      }
-      else if (failFlag)
-      {
-        if (section == 0) {
-          std::string errorString =
-            std::string("cannot find section [") + sectionname + "]";
-          FATAL_MACRO (errorString);
-        }
-        else {
-          std::string errorString =
-            std::string("cannot find item '") + itemname +  "' in section [" 
-            + sectionname + "]";
-          FATAL_MACRO (errorString);
-        }
-        return 0;
-      }
-      
-      else   return 0;
+      return item->mystring().c_str();
     }
-  
+    else if (failFlag) {
+      if (section == nullptr) {
+        std::string errorString =
+          std::string("cannot find section [") + sectionname + "]";
+        FATAL_MACRO(errorString);
+      }
+      else {
+        std::string errorString =
+          std::string("cannot find item '") + itemname + "' in section [" 
+          + sectionname + "]";
+        FATAL_MACRO(errorString);
+      }
+      return nullptr;
+    }
+    else {
+      return nullptr;
+    }
+  }
+
   // getting data from [section]item, exiting when not found
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char *IFile::getString (const char *section, const char *item)
-    {
-      return _getstring(section, item);
-    }
-  
+  const char* IFile::getString(const char* section, const char* item) {
+    return _getstring(section, item);
+  }
+
   // setting data in [section]
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  void IFile::setString(const char *sectionname, const char *itemname, 
-                        const char* newString)
-    {
-      char     hitem[1000], hsection[1000];
-      IFile_Item    *item =0;
-      IFile_Section *section=0;
+  void IFile::setString(const char* sectionname, const char* itemname, 
+                        const char* newString) {
+    char hitem[1000], hsection[1000];
+    IFile_Item* item = nullptr;
+    IFile_Section* section = nullptr;
+    
+    stripBlanks(hitem, itemname, ALL);
+    stripBlanks(hsection, sectionname, ALL);
+    
+    auto it = find(std::string(hsection));
+    
+    if (it != end()) {
+      section = it->second;
       
-      stripBlanks (hitem,    itemname,    ALL);
-      stripBlanks (hsection, sectionname, ALL);
-      
-      iterator it = find(std::string(hsection));
-      
-      if ( it != end() )      {
-        section = (*it).second;
-        
-        if (section->contains(hitem) )
-          item = section->lookUp(hitem);
+      if (section->contains(hitem)) {
+        item = section->lookUp(hitem);
       }
-      
-      if (item)	item->mystring()=newString;
     }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  double IFile::getDouble (const char *section, const char *item)
-    {
-      //      double    hf;
-      std::string hilf (IFile::_getstring (section, item));
+    
+    if (item) {
+      item->mystring() = newString;
+    }
+  }
 
-      try  {
-        return facilities::Util::stringToDouble(hilf);
-      }
-      catch (facilities::WrongType ex) {
-        std::cerr << ("from xmlBase::IFile::getDouble  ") << std::endl;
-          //        FATAL_MACRO
-        std::cerr << ex.getMsg() << std::endl;
-        throw(IFileException(" "));
-      }
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  double IFile::getDouble(const char* section, const char* item) {
+    std::string hilf(_getstring(section, item));
+    
+    try {
+      return facilities::Util::stringToDouble(hilf);
     }
-  
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getInt (const char *section, const char *item)
-    {
-      //      int       hf;
-      std::string hilf (IFile::_getstring (section, item));
+    catch (facilities::WrongType& ex) {
+      std::cerr << "from xmlBase::IFile::getDouble  " << std::endl;
+      std::cerr << ex.getMsg() << std::endl;
+      throw(IFileException(" "));
+    }
+  }
 
-      try  {
-        return facilities::Util::stringToInt(hilf);
-      }
-      catch (facilities::WrongType ex) {
-        std::cerr << ("from xmlBase::IFile::getInt  ") << std::endl;
-        std::cerr << ex.getMsg() << std::endl;
-        throw(IFileException(" "));
-      }
-    }
-  
-  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getBool (const char *section, const char *item)
-    {
-      std::string hilf (IFile::_getstring (section, item));
-      
-      if      (hilf == "yes")
-        return (1);
-      else if (hilf == "true")
-        return (1);
-      else if (hilf == "1")
-        return (1);
-      else if (hilf == "no")
-        return (0);
-      else if (hilf == "false")
-        return (0);
-      else if (hilf == "0")
-        return (0);
-      else {
-        std::string errorString("[");
-        errorString += section + std::string("]") + item + " = \'" + hilf 
-          + "\' is not boolean";
-        FATAL_MACRO (errorString);
-        return (0);
-      }
+  int IFile::getInt(const char* section, const char* item) {
+    std::string hilf(_getstring(section, item));
+    
+    try {
+      return facilities::Util::stringToInt(hilf);
     }
-  
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::intVector IFile::getIntVector (const char *section, const char *item)
-    {
-      intVector iv;
-      char buffer[1024];
-      
-      strncpy(buffer, IFile::_getstring(section,item), sizeof(buffer) -1);
-      if ( strlen(buffer) >= sizeof(buffer) ) {
-        FATAL_MACRO("string returned from _getstring is too long");
-        return iv;
-      }
-      
-      char *vString = strtok(buffer,"}");
-      vString = strtok(buffer,"{");
-      
-      char *test = strtok(vString,",");
-      while (test != NULL) {
-        iv.push_back(atoi(test));
-        test = strtok((char*)NULL,",");
-      }
-      if (iv.size() <= 0) {
-        std::string hilf (buffer);
-        std::string errorString("[");
-        errorString += section + std::string("]")  + item + " = \'"
-          + hilf + "\' is not an integer vector";
-        FATAL_MACRO (errorString);
+    catch (facilities::WrongType& ex) {
+      std::cerr << "from xmlBase::IFile::getInt  " << std::endl;
+      std::cerr << ex.getMsg() << std::endl;
+      throw(IFileException(" "));
+    }
+  }
 
-      }
-      return (iv);
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int IFile::getBool(const char* section, const char* item) {
+    std::string hilf(_getstring(section, item));
+    
+    if (hilf == "yes" || hilf == "true" || hilf == "1") {
+      return 1;
     }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::doubleVector IFile::getDoubleVector (const char *section, 
-                                              const char *item)
-    {
-      doubleVector dv;
-      char buffer[1024];
-      
-      strncpy(buffer, IFile::_getstring(section,item), sizeof(buffer) );
-      if (strlen(buffer) >= sizeof(buffer) ) {
-        FATAL_MACRO("string from _getstring() too long");
-        return dv;
-      }
-      char *vString = strtok(buffer,"}");
-      vString = strtok(buffer,"{");
-      
-      char *test = strtok(vString,",");
-      while (test != NULL) {
-        dv.push_back(atof(test));
-        test = strtok((char*)NULL,",");
-      }
-      if (dv.size() <= 0) {
-        std::string hilf (buffer);
-        std::string errorString("[");
-        errorString += section + std::string("]")  + item + " = \'"
-                               + hilf + "\' is not an double vector";
-        FATAL_MACRO (errorString);
-      }
-      return (dv);
+    else if (hilf == "no" || hilf == "false" || hilf == "0") {
+      return 0;
     }
-  
-  // getting data from [section]item, with def. values provided
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getInt (const char *section, const char *item, int defValue) {
-    return ( contains(section, item) )? getInt( section, item ):defValue;
-  }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getBool (const char *section, const char *item, int defValue)
-    {
-      return ( contains(section, item) )? getBool( section, item ):defValue;
+    else {
+      std::string errorString = "[" + std::string(section) + "]" + item 
+        + " = '" + hilf + "' is not boolean";
+      FATAL_MACRO(errorString);
+      return 0;
     }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  double IFile::getDouble(const char *section, const char *item, 
-                          double defValue)   {
-    return ( contains(section, item) )? getDouble( section, item ):defValue;
   }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char *IFile::getString (const char *section, const char *item, 
-                                const char *defValue) {
-    return ( contains(section, item) )? getString( section, item ):defValue;
-  }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::intVector IFile::getIntVector (const char *section, const char *item, 
-                                        intVector defValues)    {
-    return (contains(section, item))? getIntVector(section, item) 
-      : defValues;
-  }
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::doubleVector IFile::getDoubleVector (const char *section, 
-                                              const char *item, 
-                                              doubleVector defValues)  {
-    return (contains(section, item))? getDoubleVector(section, item):defValues;
-  }
-} //   end namespace xmlBase
 
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::intVector IFile::getIntVector(const char* section, const char* item) {
+    intVector iv;
+    char buffer[1024];
+    
+    std::strncpy(buffer, _getstring(section, item), sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
+    
+    if (std::strlen(buffer) >= sizeof(buffer) - 1) {
+      FATAL_MACRO("string returned from _getstring is too long");
+      return iv;
+    }
+    
+    char* vString = std::strtok(buffer, "}");
+    vString = std::strtok(buffer, "{");
+    
+    char* test = std::strtok(vString, ",");
+    while (test != nullptr) {
+      iv.push_back(std::atoi(test));
+      test = std::strtok(nullptr, ",");
+    }
+    
+    if (iv.empty()) {
+      std::string hilf(buffer);
+      std::string errorString = "[" + std::string(section) + "]" + item 
+        + " = '" + hilf + "' is not an integer vector";
+      FATAL_MACRO(errorString);
+    }
+    
+    return iv;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::doubleVector IFile::getDoubleVector(const char* section, 
+                                              const char* item) {
+    doubleVector dv;
+    char buffer[1024];
+    
+    std::strncpy(buffer, _getstring(section, item), sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
+    
+    if (std::strlen(buffer) >= sizeof(buffer) - 1) {
+      FATAL_MACRO("string from _getstring() too long");
+      return dv;
+    }
+    
+    char* vString = std::strtok(buffer, "}");
+    vString = std::strtok(buffer, "{");
+    
+    char* test = std::strtok(vString, ",");
+    while (test != nullptr) {
+      dv.push_back(std::atof(test));
+      test = std::strtok(nullptr, ",");
+    }
+    
+    if (dv.empty()) {
+      std::string hilf(buffer);
+      std::string errorString = "[" + std::string(section) + "]" + item 
+        + " = '" + hilf + "' is not a double vector";
+      FATAL_MACRO(errorString);
+    }
+    
+    return dv;
+  }
+
+  // getting data from [section]item, with default values provided
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int IFile::getInt(const char* section, const char* item, int defValue) {
+    return contains(section, item) ? getInt(section, item) : defValue;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int IFile::getBool(const char* section, const char* item, int defValue) {
+    return contains(section, item) ? getBool(section, item) : defValue;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  double IFile::getDouble(const char* section, const char* item, 
+                          double defValue) {
+    return contains(section, item) ? getDouble(section, item) : defValue;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  const char* IFile::getString(const char* section, const char* item, 
+                                const char* defValue) {
+    return contains(section, item) ? getString(section, item) : defValue;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::intVector IFile::getIntVector(const char* section, const char* item, 
+                                        intVector defValues) {
+    return contains(section, item) ? getIntVector(section, item) : defValues;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  IFile::doubleVector IFile::getDoubleVector(const char* section, 
+                                              const char* item, 
+                                              doubleVector defValues) {
+    return contains(section, item) ? getDoubleVector(section, item) : defValues;
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Strip blanks from string
+  void IFile::stripBlanks(char* str1, const char* str2, int flags) {
+    const char* p = str2;
+    char* q = str1;
+    
+    // Skip leading blanks if requested
+    if (flags & LEADING) {
+      while (*p && std::isspace(static_cast<unsigned char>(*p))) {
+        ++p;
+      }
+    }
+    
+    // Copy the string
+    while (*p) {
+      *q++ = *p++;
+    }
+    *q = '\0';
+    
+    // Strip trailing blanks if requested
+    if (flags & TRAILING) {
+      --q;
+      while (q >= str1 && std::isspace(static_cast<unsigned char>(*q))) {
+        *q-- = '\0';
+      }
+    }
+    
+    // Strip all blanks if requested
+    if (flags & ALL) {
+      p = str1;
+      q = str1;
+      while (*p) {
+        if (!std::isspace(static_cast<unsigned char>(*p))) {
+          *q++ = *p;
+        }
+        ++p;
+      }
+      *q = '\0';
+    }
+  }
+
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Case-insensitive string comparison
+  int IFile::stricmp(const char* str1, const char* str2) {
+    while (*str1 && *str2) {
+      int diff = std::tolower(static_cast<unsigned char>(*str1)) 
+               - std::tolower(static_cast<unsigned char>(*str2));
+      if (diff != 0) return diff;
+      ++str1;
+      ++str2;
+    }
+    return std::tolower(static_cast<unsigned char>(*str1)) 
+         - std::tolower(static_cast<unsigned char>(*str2));
+  }
+
+} // end namespace xmlBase

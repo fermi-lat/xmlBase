@@ -5,23 +5,38 @@
 #include "xmlBase/XmlParser.h"
 #include "xmlBase/EResolver.h"
 #include "xmlBase/Dom.h"
+#include "xmlBase/rapidxml.hpp"
 #include "facilities/Util.h"
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/framework/XMLValidator.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+//#include <xercesc/framework/LocalFileInputSource.hpp>
+//#include <xercesc/framework/MemBufInputSource.hpp>
+//#include <xercesc/util/XMLString.hpp>
+//#include <xercesc/framework/XMLValidator.hpp>
+//#include <xercesc/util/PlatformUtils.hpp>
 
 namespace {
-  XERCES_CPP_NAMESPACE_USE
-  bool  checkDocType(const DOMDocument* doc, const std::string docType) {
+  using namespace rapidxml;
+  bool  checkDocType(const xml_document<>* doc, const std::string docType) {
     bool ret = false;
-    const DOMDocumentType* typeDecl = doc->getDoctype();
-    if (typeDecl != 0) {
-      const XMLCh* name = typeDecl->getName();
-      XMLCh* transDocType = XMLString::transcode(docType.c_str());
-      ret = XMLString::equals(name, transDocType);
-      XMLString::release(&transDocType);
+    xml_node<> *node = doc.first_node();
+    while (node->next_sibling != 0) {
+      if (node && node->type() == rapidxml::node_doctype) {
+	break;
+      }
+      else {
+	node = node->next_sibling;
+      }
+    }
+    
+    if (node && node->type() == rapidxml::node_doctype) {
+      ret = (node->value() == docType);
+    }
+      
+    //const DOMDocumentType* typeDecl = doc->getDoctype();
+    //if (typeDecl != 0) {
+    // const XMLCh* name = typeDecl->getName();
+    // XMLCh* transDocType = XMLString::transcode(docType.c_str());
+    // ret = XMLString::equals(name, transDocType);
+    // XMLString::release(&transDocType);
 
     }
     return ret;
@@ -31,7 +46,7 @@ namespace {
 
 
 namespace xmlBase {
-  XERCES_CPP_NAMESPACE_USE
+  //XERCES_CPP_NAMESPACE_USE
 
   XmlParser::XmlParser(bool throwErrors) : m_throwErrors(throwErrors),
                                            m_doSchema(false) {
@@ -44,61 +59,64 @@ namespace xmlBase {
       }
     }
 
-    m_parser = new XercesDOMParser();
+    //m_parser = new XercesDOMParser();
 
     m_errorHandler = new XmlErrorHandler(throwErrors);
 
     // According to documentation we shouldn't need this, but
     // just in case..
-    m_parser->setValidationScheme(AbstractDOMParser::Val_Auto);
+    //m_parser->setValidationScheme(AbstractDOMParser::Val_Auto); /// NOTE: rapidXML DOES NOT do validation
     /*
     m_parser->setDoNamespaces(true);
     m_parser->setDoSchema(true);
     m_parser->setValidationSchemaFullChecking(true);
     */
 
-    m_resolver = new EResolver();
-    m_parser->setXMLEntityResolver(m_resolver);
-    m_parser->setErrorHandler(m_errorHandler);
+    //m_resolver = new EResolver(); /// NOTE: rapidXML DOES NOT have a built-in entity resolver
+    //m_parser->setXMLEntityResolver(m_resolver);
+    m_parser->setErrorHandler(m_errorHandler); // TODO: Figure out error handling for rapidXML
 
     // Don't keep entity reference nodes.  We don't use them
     // and they can cause confusion
-    m_parser->setCreateEntityReferenceNodes(false);
+    //m_parser->setCreateEntityReferenceNodes(false);
     // Have to leave this line out for now since it causes weirdness
     // with DOMDocument::getElementById
 
     // As long as we don't need to re-serialize, we can forget about
     // ingnorable white space and save a bit of memory.
-    m_parser->setIncludeIgnorableWhitespace(false);
+    m_parser->setIncludeIgnorableWhitespace(false); // TODO: Check how rapidXML handles whitespace
   }
   void XmlParser::doSchema(bool doit) {
     m_doSchema = doit;  // just to keep a record of what we think we're doing
-
-    //    m_parser->setValidationScheme(AbstractDOMParser::Val_Always);
-    m_parser->setDoNamespaces(doit);
-    m_parser->setDoSchema(doit);
-    m_parser->setValidationSchemaFullChecking(doit);
+    /// NOTE: rapidXML DOES NOT natively validate or process schemas!                        
+    /// Disabling for now but need to see if this is something we actually need.
+    ////    m_parser->setValidationScheme(AbstractDOMParser::Val_Always);
+    //m_parser->setDoNamespaces(doit);
+    //m_parser->setDoSchema(doit);
+    //m_parser->setValidationSchemaFullChecking(doit);
+    std::cout << "rapidXML DOES NOT natively validate or process schemas!" << std::endl;
   }
 
   void XmlParser::setSchemaLocation(const std::string& loc, bool ns) {
-    if (ns) m_parser->setExternalSchemaLocation(loc.c_str());
-    else m_parser->setExternalNoNamespaceSchemaLocation(loc.c_str());
-    return;
+    ///if (ns) m_parser->setExternalSchemaLocation(loc.c_str());
+    ///else m_parser->setExternalNoNamespaceSchemaLocation(loc.c_str());
+    ///return;
+    std::cout << "rapidXML DOES NOT natively validate or process schemas!" << std::endl;
   }
 
   XmlParser::~XmlParser() {
     delete m_errorHandler;
-    delete m_resolver;
+    //delete m_resolver;
     // delete m_parser;  temporary, until we can figure out why there 
     // are sometimes problems while freeing this piece of memory.
   }
  
   DOMDocument* XmlParser::parse(const char* const filename, 
                                 const std::string& docType) {
-    XERCES_CPP_NAMESPACE_USE
+    //XERCES_CPP_NAMESPACE_USE
     // Reset from any previous parse
     m_errorsOccurred = false;
-    m_resolver->clean();
+    //m_resolver->clean(); // Clears entity resolver
 
     // translate environment variables, if any
     std::string fname(filename);
@@ -118,12 +136,31 @@ namespace xmlBase {
     // parse file
     try {
       //      XMLCh* filenameXMLCh = Dom::transToXMLCh(filename);
-      XMLCh* filenameXMLCh = XMLString::transcode(fname.c_str());
-      LocalFileInputSource fileSource(filenameXMLCh);
-      m_parser->parse(fileSource);
-      XMLString::release(&filenameXMLCh);
+
+      // Below function transcodes the file to an internal xerces char type using a xerces transcoder
+      // Need to do memory tests to make sure the new version isn't too memory intensive with large XML inputs
+      //XMLCh* filenameXMLCh = XMLString::transcode(fname.c_str());  // XMLCh type is a Xerces internal char type.  Convert these transcodes to standard char arrays
+      //LocalFileInputSource fileSource(filenameXMLCh);
+      //m_parser->parse(fileSource);
+      //XMLString::release(&filenameXMLCh);
+
+      std::ifstream inputFile(filename, std::ios::in | std::ios::binary);
+      // Check if the file opened successfully
+      if (!inputFile.is_open()) {
+	std::cerr << "Error: Unable to open the file " << filename << std::endl; // TODO: Handle with exception handler
+	return 1;
+      }
+
+      xml_document<> doc; // character type defaults to char
+      std::string content(
+                      (std::istreambuf_iterator<char>(inputFile)), // Start iterator         
+                      (std::istreambuf_iterator<char>())// End iterator                      
+                      );
+      
+      char* c_ptr = &content[0];
+      doc.parse<0>(c_ptr);
     }
-    catch   (const XMLException& e) {
+    catch   (const rapidxml::parse_error& e) {
       char* charMsg = XMLString::transcode(e.getMessage());
       std::string msg = std::string(charMsg);
       XMLString::release(&charMsg);
@@ -160,7 +197,8 @@ namespace xmlBase {
       return 0;
     }
 
-    return m_parser->getDocument();
+    //return m_parser->getDocument();
+    return doc;
     // if ok return document node; else null
   }
 
@@ -183,7 +221,7 @@ namespace xmlBase {
       m_parser->parse(source);
       XMLString::release(&buffer);
     }
-    catch   (const XMLException& e) {
+    catch   (const rapidxml::parse_error& e) {
       char* charMsg = XMLString::transcode(e.getMessage());
       std::string msg = std::string(charMsg);
       XMLString::release(&charMsg);
