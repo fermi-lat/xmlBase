@@ -21,7 +21,7 @@
 
 using namespace xml_framework;
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int {
   facilities::commonUtilities::setupEnvironment();
   std::string infile;
   if (argc < 2) { 

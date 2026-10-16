@@ -26,8 +26,8 @@ namespace {
    using namespace xml_framework;
 
    // Helper function to get attribute value from a node
-   [[nodiscard]] std::string getAttribute(rapidxml::xml_node<>* node, 
-                                          const char* attrName) {
+   [[nodiscard]] auto getAttribute(rapidxml::xml_node<>* node, 
+                                          const char* attrName) -> std::string {
       if (!node) {
          return "";
       }
@@ -39,7 +39,7 @@ namespace {
    }
 
    // Helper function to get text content from a node
-   [[nodiscard]] std::string getTextContent(rapidxml::xml_node<>* node) {
+   [[nodiscard]] auto getTextContent(rapidxml::xml_node<>* node) -> std::string {
       if (!node) {
          return "";
       }
@@ -57,7 +57,7 @@ namespace {
    }
 
    // Helper to read file contents
-   [[nodiscard]] std::string readFileContents(const std::string& filename) {
+   [[nodiscard]] auto readFileContents(const std::string& filename) -> std::string {
       std::ifstream file(filename);
       if (!file) {
          throw std::runtime_error("Cannot open file: " + filename);
@@ -81,7 +81,7 @@ namespace {
       
       // Recursive lambda to find all matching elements
       std::function<void(rapidxml::xml_node<>*)> findElements = 
-         [&](rapidxml::xml_node<>* node) {
+         [&](rapidxml::xml_node<>* node) -> void {
             if (!node) return;
             
             for (auto* child = node->first_node(); child; child = child->next_sibling()) {
@@ -146,13 +146,13 @@ namespace {
    }
 }
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int {
    using namespace xml_framework;
    
    facilities::commonUtilities::setupEnvironment();
    
    // Determine input file
-   std::string infile = [&]() {
+   std::string infile = [&]() -> std::string {
       if (argc >= 2) {
          return std::string(argv[1]);
       }

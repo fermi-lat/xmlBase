@@ -18,7 +18,7 @@
 // Forward declaration
 void lookFor(xmlBase::IFile& ifile, std::string_view section, std::string_view item);
 
-int main() {
+auto main() -> int {
    facilities::commonUtilities::setupEnvironment();
    
    const std::string filename = facilities::commonUtilities::joinPath(
