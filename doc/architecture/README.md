@@ -185,6 +185,17 @@ None. Six test programs are installed to `bin/` (see below).
 
 None.
 
+### Environment variables
+
+None read directly (no `getenv`). `IFile`'s constructor passes its file
+name through `facilities::Util::expandEnvVar` (`src/IFile.cxx`), so
+`$(VAR)` references there are expanded and an unset variable throws
+`facilities::Untranslatable`. The same call in `src/EResolver.cxx` and
+`src/XmlParser.cxx` is not compiled. The test programs rely on
+`$(XMLBASEXMLPATH)`, which `setupEnvironment()` sets from
+`FERMI_INST_DIR`; see "Runtime environment" in ScienceTools'
+`docs/architecture/README.md`.
+
 ### File formats
 
 - Any well-formed XML, read without validation.
@@ -218,9 +229,19 @@ None.
   environment) and `xmlBase` must be installed. Most of them print results
   rather than check them. Treat a non-zero exit as a failure, and read the
   output.
+- **Project harness.** The default run of `recipe/tests/ST-unit-test` (see
+  "Testing" in ScienceTools' `docs/architecture/README.md`) runs
+  `test_mem`, `test_write` and `test_xmlBase` (no arguments), and
+  `check_test_write_output` diffs `myDoc.xml` against
+  `share/fermitools/data/xmlBase/outref/myDoc.xml`. That reference ships in
+  the `fermitools-test-scripts-data` conda package (CI test environment
+  only), sourced from `outrefFiles/xmlBase/` in the `fermitools-data`
+  repository; xmlBase has no `outref` of its own. `entity_test`,
+  `test_parse` and `test_IFile` are not run.
 - **Real coverage** of the helpers comes from the consumers' tests:
-  `test_optimizers`, Likelihood's `test_Likelihood` (XML model round-trips
-  via `XmlDiff`) and the flux tests.
+  Likelihood's `test_Likelihood` (XML model round-trips via `XmlDiff`) and
+  `test_flux`, both in the default run. `test_optimizers` also exercises
+  them but is commented out of `ST-unit-test`.
 - **Legacy:** `SConscript`, `xmlBaseLib.py`, `.cvsignore`.
 - **CI:** `azure-pipelines.yml` (shared `fermi-lat/ci` templates).
 
