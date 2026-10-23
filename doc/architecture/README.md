@@ -234,9 +234,8 @@ name through `facilities::Util::expandEnvVar` (`src/IFile.cxx`), so
   `test_mem`, `test_write` and `test_xmlBase` (no arguments), and
   `check_test_write_output` diffs `myDoc.xml` against
   `share/fermitools/data/xmlBase/outref/myDoc.xml`. That reference ships in
-  the `fermitools-test-scripts-data` conda package (CI test environment
-  only), sourced from `outrefFiles/xmlBase/` in the `fermitools-data`
-  repository; xmlBase has no `outref` of its own. `entity_test`,
+  the runtime `fermitools-data` conda package, sourced from
+  `outrefFiles/xmlBase/` in the `fermitools-data` repository; xmlBase has no `outref` of its own. `entity_test`,
   `test_parse` and `test_IFile` are not run.
 - **Real coverage** of the helpers comes from the consumers' tests:
   Likelihood's `test_Likelihood` (XML model round-trips via `XmlDiff`) and
