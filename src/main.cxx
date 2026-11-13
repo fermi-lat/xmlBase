@@ -33,7 +33,7 @@ auto main(int argc, char* argv[]) -> int {
     
   facilities::Util::expandEnvVar(&infile);
  
-  xml_framework::SafeXmlParser* parser = new xml_framework::SafeXmlParser();
+  auto* parser = new xml_framework::SafeXmlParser();
 
   std::vector<char> buffer;
   rapidxml::xml_document<> doc;

@@ -178,7 +178,7 @@ namespace xmlBase {
         std::string itemValue = itemValueResult.value();
         
         // Make the new item
-        IFile_Item* newItem = new IFile_Item(itemName, itemValue);
+        auto* newItem = new IFile_Item(itemName, itemValue);
         
         // Add it to the section map
         (*curSection_)[newItem->title()] = newItem;
