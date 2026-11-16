@@ -22,24 +22,24 @@ namespace {
    using namespace xml_framework;
 
    // Helper to allocate string in document
-   [[nodiscard]] char* allocString(rapidxml::xml_document<>& doc, const std::string& str) {
+   [[nodiscard]] auto allocString(rapidxml::xml_document<>& doc, const std::string& str) -> char* {
       return doc.allocate_string(str.c_str(), str.size() + 1);
    }
 
    // Helper to create a child element
-   rapidxml::xml_node<>* makeChildNode(rapidxml::xml_document<>& doc,
+   auto makeChildNode(rapidxml::xml_document<>& doc,
                                        rapidxml::xml_node<>* parent,
-                                       const std::string& name) {
+                                       const std::string& name) -> rapidxml::xml_node<>* {
       auto* node = doc.allocate_node(rapidxml::node_element, allocString(doc, name));
       parent->append_node(node);
       return node;
    }
 
    // Helper to create a child element with text content
-   rapidxml::xml_node<>* makeChildNodeWithContent(rapidxml::xml_document<>& doc,
+   auto makeChildNodeWithContent(rapidxml::xml_document<>& doc,
                                                   rapidxml::xml_node<>* parent,
                                                   const std::string& name,
-                                                  const std::string& content) {
+                                                  const std::string& content) -> rapidxml::xml_node<>* {
       auto* node = doc.allocate_node(rapidxml::node_element, allocString(doc, name));
       auto* textNode = doc.allocate_node(rapidxml::node_data, nullptr, allocString(doc, content));
       node->append_node(textNode);
@@ -48,18 +48,18 @@ namespace {
    }
 
    // Helper to create a child element with integer content
-   rapidxml::xml_node<>* makeChildNodeWithContent(rapidxml::xml_document<>& doc,
+   auto makeChildNodeWithContent(rapidxml::xml_document<>& doc,
                                                   rapidxml::xml_node<>* parent,
                                                   const std::string& name,
-                                                  int value) {
+                                                  int value) -> rapidxml::xml_node<>* {
       return makeChildNodeWithContent(doc, parent, name, std::to_string(value));
    }
 
    // Helper to create a child element with hex content
-   rapidxml::xml_node<>* makeChildNodeWithHexContent(rapidxml::xml_document<>& doc,
+   auto makeChildNodeWithHexContent(rapidxml::xml_document<>& doc,
                                                      rapidxml::xml_node<>* parent,
                                                      const std::string& name,
-                                                     int value) {
+                                                     int value) -> rapidxml::xml_node<>* {
       std::ostringstream ss;
       ss << "0x" << std::hex << value;
       return makeChildNodeWithContent(doc, parent, name, ss.str());
@@ -82,9 +82,9 @@ namespace {
    }
 
    // Helper to write XML to file
-   [[nodiscard]] bool writeXml(rapidxml::xml_node<>* node, 
+   [[nodiscard]] auto writeXml(rapidxml::xml_node<>* node, 
                                const std::string& filename,
-                               bool standalone = false) {
+                               bool standalone = false) -> bool {
       std::ofstream file(filename);
       if (!file) {
          return false;
@@ -109,7 +109,7 @@ namespace {
    }
 
    // Helper to read file contents
-   [[nodiscard]] std::string readFileContents(const std::string& filename) {
+   [[nodiscard]] auto readFileContents(const std::string& filename) -> std::string {
       std::ifstream file(filename);
       if (!file) {
          throw std::runtime_error("Cannot open file: " + filename);
@@ -121,9 +121,9 @@ namespace {
 }
 
 // Return of 0 is good status
-unsigned stripAndWrite(const std::string& fname, bool standalone = false);
+auto stripAndWrite(const std::string& fname, bool standalone = false) -> unsigned;
 
-int main() {
+auto main() -> int {
    using namespace xml_framework;
    using facilities::commonUtilities;
 
@@ -185,7 +185,7 @@ int main() {
 }
 
 // Return of 0 is good status
-unsigned stripAndWrite(const std::string& fname, bool standalone) {
+auto stripAndWrite(const std::string& fname, bool standalone) -> unsigned {
    using namespace xml_framework;
 
    auto parser = std::make_unique<SafeXmlParser>();

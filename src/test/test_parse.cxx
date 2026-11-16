@@ -16,13 +16,13 @@
 #include <string>
 #include <vector>
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int {
    using namespace xml_framework;
    
    facilities::commonUtilities::setupEnvironment();
 
    // Determine file path
-   std::string filepath = [&]() {
+   std::string filepath = [&]() -> std::string {
       if (argc > 1) {
          return std::string(argv[1]);
       }

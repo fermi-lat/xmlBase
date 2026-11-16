@@ -191,13 +191,13 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  bool IFile::contains(const char* section, const char* item) {
+  auto IFile::contains(const char* section, const char* item) -> bool {
     return (_getstring(section, item, 0) != nullptr);
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char* IFile::_getstring(const char* sectionname, const char* itemname, 
-                                int failFlag) {
+  auto IFile::_getstring(const char* sectionname, const char* itemname, 
+                                int failFlag) -> const char* {
     char hitem[1000], hsection[1000];
     IFile_Item* item = nullptr;
     IFile_Section* section = nullptr;
@@ -242,7 +242,7 @@ namespace xmlBase {
 
   // getting data from [section]item, exiting when not found
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char* IFile::getString(const char* section, const char* item) {
+  auto IFile::getString(const char* section, const char* item) -> const char* {
     return _getstring(section, item);
   }
 
@@ -273,7 +273,7 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  double IFile::getDouble(const char* section, const char* item) {
+  auto IFile::getDouble(const char* section, const char* item) -> double {
     std::string hilf(_getstring(section, item));
     
     try {
@@ -287,7 +287,7 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getInt(const char* section, const char* item) {
+  auto IFile::getInt(const char* section, const char* item) -> int {
     std::string hilf(_getstring(section, item));
     
     try {
@@ -301,7 +301,7 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getBool(const char* section, const char* item) {
+  auto IFile::getBool(const char* section, const char* item) -> int {
     std::string hilf(_getstring(section, item));
     
     if (hilf == "yes" || hilf == "true" || hilf == "1") {
@@ -319,7 +319,7 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::intVector IFile::getIntVector(const char* section, const char* item) {
+  auto IFile::getIntVector(const char* section, const char* item) -> IFile::intVector {
     intVector iv;
     char buffer[1024];
     
@@ -351,8 +351,8 @@ namespace xmlBase {
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::doubleVector IFile::getDoubleVector(const char* section, 
-                                              const char* item) {
+  auto IFile::getDoubleVector(const char* section, 
+                                              const char* item) -> IFile::doubleVector {
     doubleVector dv;
     char buffer[1024];
     
@@ -385,37 +385,37 @@ namespace xmlBase {
 
   // getting data from [section]item, with default values provided
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getInt(const char* section, const char* item, int defValue) {
+  auto IFile::getInt(const char* section, const char* item, int defValue) -> int {
     return contains(section, item) ? getInt(section, item) : defValue;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int IFile::getBool(const char* section, const char* item, int defValue) {
+  auto IFile::getBool(const char* section, const char* item, int defValue) -> int {
     return contains(section, item) ? getBool(section, item) : defValue;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  double IFile::getDouble(const char* section, const char* item, 
-                          double defValue) {
+  auto IFile::getDouble(const char* section, const char* item, 
+                          double defValue) -> double {
     return contains(section, item) ? getDouble(section, item) : defValue;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  const char* IFile::getString(const char* section, const char* item, 
-                                const char* defValue) {
+  auto IFile::getString(const char* section, const char* item, 
+                                const char* defValue) -> const char* {
     return contains(section, item) ? getString(section, item) : defValue;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::intVector IFile::getIntVector(const char* section, const char* item, 
-                                        intVector defValues) {
+  auto IFile::getIntVector(const char* section, const char* item, 
+                                        intVector defValues) -> IFile::intVector {
     return contains(section, item) ? getIntVector(section, item) : defValues;
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  IFile::doubleVector IFile::getDoubleVector(const char* section, 
+  auto IFile::getDoubleVector(const char* section, 
                                               const char* item, 
-                                              doubleVector defValues) {
+                                              doubleVector defValues) -> IFile::doubleVector {
     return contains(section, item) ? getDoubleVector(section, item) : defValues;
   }
 
@@ -462,7 +462,7 @@ namespace xmlBase {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Case-insensitive string comparison
-  int IFile::stricmp(const char* str1, const char* str2) {
+  auto IFile::stricmp(const char* str1, const char* str2) -> int {
     while (*str1 && *str2) {
       int diff = std::tolower(static_cast<unsigned char>(*str1)) 
                - std::tolower(static_cast<unsigned char>(*str2));

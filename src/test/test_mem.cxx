@@ -38,7 +38,7 @@ namespace {
       "</TopElement>";
 }
 
-int main() {
+auto main() -> int {
    using namespace xml_framework;
    
    facilities::commonUtilities::setupEnvironment();
